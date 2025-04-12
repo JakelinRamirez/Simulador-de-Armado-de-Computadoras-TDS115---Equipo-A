@@ -1,23 +1,11 @@
 import pygame
-import sys
-from screens import show_start_screen
+from screens.selection_screen import SelectionScreen
 
-# Inicializar Pygame
 pygame.init()
+screen = pygame.display.set_mode((800, 600))
 
-# Configuración de la ventana
-screen_width, screen_height = 800, 600
-screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Simulador de Armado de Computadoras")
-
-# Bucle principal del juego
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    # Llamar a la pantalla de inicio
-    show_start_screen(screen, screen_width, screen_height)
+selector =SelectionScreen(screen)
+tipo = selector.run()
+print("Tipo seleccionado:", tipo)
 
 pygame.quit()
