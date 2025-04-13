@@ -1,26 +1,28 @@
 import pygame
 
 class SelectionScreen:
+    #Constructor
     def __init__(self, screen):
+        # Guarda la pantalla de Pygame y define dos tamaños de fuente: una grande para títulos y otra más pequeña para textos secundarios.
         self.screen = screen
         self.font = pygame.font.Font(None, 36)
         self.title_font = pygame.font.Font(None, 48)
         self.title_text = self.title_font.render("Selecciona el tipo de computadora", True, (255, 255, 255))
 
-        # Cargar y redimensionar imágenes
+        # Cargar y pone el tamaño de las imagenes
         self.laptop_image = pygame.image.load("../assets/images/LaptopIcon.PNG").convert_alpha()
         self.desktop_image = pygame.image.load("../assets/images/DesktopIcon.png").convert_alpha()
         self.laptop_image = pygame.transform.scale(self.laptop_image, (120, 100))
         self.desktop_image = pygame.transform.scale(self.desktop_image, (120, 100))
 
-        # Rectángulos de tarjeta (contenedor principal)
+        # Rectangulo de fondo
         self.laptop_rect = pygame.Rect(150, 250, 200, 260)
         self.desktop_rect = pygame.Rect(400, 250, 200, 260)
 
-        # Botones de seleccionar
+        # Botones
         self.laptop_button_rect = pygame.Rect(self.laptop_rect.x + 25, self.laptop_rect.y + 190, 150, 40)
         self.desktop_button_rect = pygame.Rect(self.desktop_rect.x + 25, self.desktop_rect.y + 190, 150, 40)
-
+    #Metodo que dibuja en pantalla los componentes
     def draw(self):
         self.screen.fill((30, 30, 30))  # Fondo
         self.screen.blit(self.title_text, (100, 100))  # Título
@@ -29,7 +31,7 @@ class SelectionScreen:
         tarjeta_color = (180, 180, 180)
         boton_color = (100, 100, 200)
 
-        # --- Tarjeta Laptop ---
+        # --- Tarjeta de la laptop ---
         pygame.draw.rect(self.screen, tarjeta_color, self.laptop_rect, border_radius=12)
         self.screen.blit(self.laptop_image, (self.laptop_rect.x + 40, self.laptop_rect.y + 20))
         laptop_text = self.font.render("Laptop", True, (0, 0, 0))
@@ -40,7 +42,7 @@ class SelectionScreen:
         btn_text_rect = laptop_btn_text.get_rect(center=self.laptop_button_rect.center)
         self.screen.blit(laptop_btn_text, btn_text_rect)
 
-        # --- Tarjeta Desktop ---
+        # --- Tarjeta e desktop ---
         pygame.draw.rect(self.screen, tarjeta_color, self.desktop_rect, border_radius=12)
         self.screen.blit(self.desktop_image, (self.desktop_rect.x + 40, self.desktop_rect.y + 20))
         desktop_text = self.font.render("Desktop", True, (0, 0, 0))
@@ -56,7 +58,7 @@ class SelectionScreen:
     def run(self):
         running = True
         selected = None
-
+        #While para saber que acciones que realiza el usuario
         while running:
             self.draw()
             for event in pygame.event.get():
