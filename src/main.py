@@ -14,7 +14,7 @@ def main():
     pygame.init()
     
     # Configurar ventana principal
-    screen = pygame.display.set_mode((800, 600))
+    screen = pygame.display.set_mode((970, 810))
     pygame.display.set_caption("Simulador de Computadoras - TDS115")
     
     # Bucle principal de la aplicación
@@ -38,8 +38,8 @@ def main():
             
             print(f"Tipo seleccionado: {selected_type}")
             
-            # Pantalla de simulación
-            simulation_screen = EstanteScreen(screen)
+            # Pantalla de simulación - pasar el tipo seleccionado
+            simulation_screen = EstanteScreen(screen, selected_type)
             go_back = simulation_screen.run()
             
             if not go_back:
