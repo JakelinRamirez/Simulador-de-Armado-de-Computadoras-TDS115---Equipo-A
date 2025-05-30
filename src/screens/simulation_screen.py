@@ -450,72 +450,80 @@ class EstanteScreen:
         """Muestra un diálogo de alerta simple."""
         self.dialog = ConfirmDialog(self.screen, message, is_alert=True)
 
-    def run(self):
-        """Maneja eventos y lógica principal"""
+    def run_logic(self):
+        """Maneja eventos y lógica principal, devuelve una acción y componentes."""
         running = True
-        go_back = False
+        action_result = {"action": "quit", "selected_components": []}
         
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                    go_back = False 
+                    action_result = {"action": "quit"}
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.dialog:
                         result = self.dialog.handle_click(event.pos)
                         if self.dialog.is_alert:
-                            if result: # Si se hizo clic en OK
-                                self.dialog = None # Cerrar alerta
-                        else: # Es un diálogo de confirmación
+                            if result: self.dialog = None
+                        else: 
                             if result is True:  
                                 self.clear_selections()
                                 self.dialog = None
                                 if hasattr(self, 'pending_action') and self.pending_action == 'back':
-                                    go_back = True
                                     running = False
+                                    action_result = {"action": "back_to_selection"}
                                 if hasattr(self, 'pending_action'): delattr(self, 'pending_action')
                             elif result is False: 
                                 self.dialog = None
-                                if hasattr(self, 'pending_action'):
-                                    delattr(self, 'pending_action')
+                                if hasattr(self, 'pending_action'): delattr(self, 'pending_action')
                     else:
                         if self.back_button.collidepoint(event.pos):
                             if self.has_selections(): 
                                 self.pending_action = 'back' 
                                 self.show_confirmation_dialog("Tienes componentes seleccionados.\n¿Descartar cambios y retroceder?")
                             else:
-                                go_back = True 
                                 running = False
+                                action_result = {"action": "back_to_selection"}
                         elif self.switch_button.collidepoint(event.pos):
                             self.show_internal = not self.show_internal
                         elif self.finish_button.collidepoint(event.pos):
-                            # Validaciones para el botón "Continuar Ensamble"
                             selected_internals = [card for card in self.internal_components if card.selected]
                             selected_externals = [card for card in self.external_components if card.selected]
-
-                            # 1. Verificar si hay selección en el ESTANTE ACTUAL
                             current_shelf_components = self.internal_components if self.show_internal else self.external_components
                             has_current_shelf_selection = any(card.selected for card in current_shelf_components)
 
                             if not has_current_shelf_selection:
                                 shelf_name = "internos" if self.show_internal else "externos"
                                 self.show_alert(f"Debes seleccionar al menos un\ncomponente del estante de\ncomponentes {shelf_name} para continuar.")
-                            # 2. Si hay selección en el estante actual, VERIFICAR EL OTRO ESTANTE
                             elif not selected_internals:
                                 self.show_alert("Debes seleccionar al menos un\ncomponente del estante de\ncomponentes INTERNOS para continuar.")
                             elif not selected_externals:
                                 self.show_alert("Debes seleccionar al menos un\ncomponente del estante de\ncomponentes EXTERNOS para continuar.")
-                            # 3. Si TODO OK, se puede continuar
                             else:
                                 final_selected_names = [card.name for card in selected_internals + selected_externals]
                                 print(f"Boton 'Continuar Ensamble' presionado. Todos los componentes requeridos seleccionados: {final_selected_names}")
-                                # Aquí iría la lógica para pasar a la siguiente fase del ensamble.
-                                # Por ahora, podemos hacer que regrese a la pantalla de selección para simular que se completó esta etapa.
-                                # go_back = True
-                                # running = False
+                                running = False
+                                action_result = {"action": "proceed_to_worktable", "selected_components": final_selected_names}
                         else:
                             self.handle_component_click(event.pos)
             
             self.draw()
+            pygame.display.flip() # Asegurarse que se actualiza el display en este bucle
         
-        return go_back
+        return action_result
+
+    # Renombrar el antiguo run a _legacy_run o eliminarlo si no se usa más.
+    # Por ahora, vamos a asumir que run_logic es el nuevo principal.
+    def run(self):
+        # Esta función ahora debería llamar a run_logic y procesar su salida simple
+        # para compatibilidad con cómo la llamaba main.py antes (que esperaba un booleano go_back)
+        # Sin embargo, main.py ya fue actualizado para manejar el diccionario de run_logic.
+        # Así que podemos hacer que run() simplemente llame a run_logic()
+        # y el main.py ya sabe cómo manejar el resultado. 
+        # OJO: main.py fue editado para llamar a estante_screen.run_logic() directamente.
+        # por lo que este método run() podría no ser llamado. 
+        # Mantenerlo por si acaso o limpiarlo después.
+        # Para este ejercicio, lo dejaré para que llame a run_logic y convierta su salida
+        # a lo que el main.py ANTES esperaba (un booleano)
+        result = self.run_logic()
+        return result["action"] == "back_to_selection" 
