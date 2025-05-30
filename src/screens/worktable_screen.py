@@ -167,44 +167,36 @@ class WorktableScreen:
         mini_card_w, mini_card_h = 170, 95 # Tamaño actual de mini-tarjeta
         img_in_card_w, img_in_card_h = 80, 60 # Tamaño de imagen dentro de la mini-tarjeta
 
-        # Coordenadas (x, y, w, h) relativas al self.laptop_scheme_rect.topleft
-        # Basadas en la distribución de la imagen de referencia:
-        # RAM (izquierda, un poco abajo del centro vertical del área de slots)
-        # CPU (centro, arriba)
-        # M.2 (derecha de CPU, arriba)
-        # SSD (debajo de M.2 y parte de CPU)
-        # Wi-Fi (debajo de SSD, más pequeño)
-        
-        # Calcular un área útil dentro del chasis para colocar los slots
-        # Dejamos un padding interno en el chasis
-        padding_chasis = 30 
-        slot_area_x = self.laptop_scheme_rect.left + padding_chasis
-        slot_area_y = self.laptop_scheme_rect.top + self.laptop_scheme_rect.height * 0.15 # Debajo del área de "pantalla"
+        # Coordenadas ajustadas para un espaciado óptimo basado en la imagen de referencia
+        padding_chasis = 40 
         slot_area_width = self.laptop_scheme_rect.width - 2 * padding_chasis
-        slot_area_height = self.laptop_scheme_rect.height * 0.8 - padding_chasis
+        slot_area_height = self.laptop_scheme_rect.height - 2 * padding_chasis
 
-        # Ajuste de coordenadas relativas al chasis (self.laptop_scheme_rect.topleft)
+        # Coordenadas ajustadas exactamente como en la imagen de referencia
         slot_data = [
-            # (id_slot, texto_visible_en_slot, (rel_x, rel_y, width, height), id_componente_aceptado)
-            # Las dimensiones (width, height) aquí deben ser las de mini_card_w, mini_card_h
-            ("SLOT_RAM", "RAM", 
-             (padding_chasis + 20, slot_area_height * 0.4, mini_card_w, mini_card_h), 
+            # RAM: Izquierda, un poco abajo del centro vertical del área de slots
+            ("SLOT_RAM", "RAM",
+             (padding_chasis + 30, slot_area_height * 0.40, mini_card_w, mini_card_h),
              "RAM_1"),
-            
-            ("SLOT_CPU", "CPU", 
-             (slot_area_width * 0.5 - mini_card_w * 0.5, padding_chasis + 60, mini_card_w, mini_card_h), 
+
+            # CPU: Más centrado, arriba de la RAM y a la izquierda del M.2
+            ("SLOT_CPU", "CPU",
+             (slot_area_width * 0.35, slot_area_height * 0.15, mini_card_w, mini_card_h),
              "CPU_1"),
-            
-            ("SLOT_M2", "M.2", 
-             (slot_area_width * 0.75 - mini_card_w * 0.5, padding_chasis + 50, mini_card_w, mini_card_h), 
+
+            # M.2: Movido más a la derecha y hacia abajo para evitar superposición con CPU
+            ("SLOT_M2", "M.2",
+             (slot_area_width * 0.68, slot_area_height * 0.15, mini_card_w, mini_card_h),
              "M2_1"),
-            
-            ("SLOT_SSD", "SSD", 
-             (slot_area_width * 0.6 - mini_card_w * 0.5, slot_area_height * 0.55, mini_card_w, mini_card_h), 
+
+            # SSD: Debajo del M.2 y a la derecha de la RAM
+            ("SLOT_SSD", "SSD",
+             (slot_area_width * 0.55, slot_area_height * 0.50, mini_card_w, mini_card_h),
              "SSD_1"),
-            
-            ("SLOT_WIFI", "Wi-Fi", 
-             (slot_area_width * 0.55 - mini_card_w * 0.5, slot_area_height * 0.8 - mini_card_h*0.5 , mini_card_w, mini_card_h), 
+
+            # Wi-Fi: Abajo a la derecha, debajo del SSD
+            ("SLOT_WIFI", "Wi-Fi",
+             (slot_area_width * 0.60, slot_area_height * 0.80, mini_card_w, mini_card_h),
              "WIFI_1"),
         ]
 
@@ -288,8 +280,36 @@ class WorktableScreen:
     def draw(self, mouse_pos):
         self.screen.fill(BG_COLOR)
         
+        # Dibujar el chasis principal de la laptop
         pygame.draw.rect(self.screen, LAPTOP_CHASSIS_COLOR, self.laptop_scheme_rect, border_radius=15)
         pygame.draw.rect(self.screen, (100,100,100), self.laptop_scheme_rect, 3, border_radius=15)
+        
+        # Agregar tornillos en las esquinas (círculos pequeños)
+        screw_radius = 4
+        screw_color = (80, 80, 80)  # Gris oscuro para los tornillos
+        screw_offset = 15  # Distancia desde la esquina
+        
+        # Tornillo esquina superior izquierda
+        pygame.draw.circle(self.screen, screw_color, 
+                          (self.laptop_scheme_rect.left + screw_offset, 
+                           self.laptop_scheme_rect.top + screw_offset), screw_radius)
+        
+        # Tornillo esquina superior derecha
+        pygame.draw.circle(self.screen, screw_color, 
+                          (self.laptop_scheme_rect.right - screw_offset, 
+                           self.laptop_scheme_rect.top + screw_offset), screw_radius)
+        
+        # Tornillo esquina inferior izquierda
+        pygame.draw.circle(self.screen, screw_color, 
+                          (self.laptop_scheme_rect.left + screw_offset, 
+                           self.laptop_scheme_rect.bottom - screw_offset), screw_radius)
+        
+        # Tornillo esquina inferior derecha
+        pygame.draw.circle(self.screen, screw_color, 
+                          (self.laptop_scheme_rect.right - screw_offset, 
+                           self.laptop_scheme_rect.bottom - screw_offset), screw_radius)
+        
+        # Área de pantalla
         screen_area_rect = pygame.Rect(self.laptop_scheme_rect.x + 20, self.laptop_scheme_rect.y + 20, self.laptop_scheme_rect.width - 40, self.laptop_scheme_rect.height * 0.1)
         pygame.draw.rect(self.screen, LAPTOP_SCREEN_AREA_COLOR, screen_area_rect, border_radius=5)
 
