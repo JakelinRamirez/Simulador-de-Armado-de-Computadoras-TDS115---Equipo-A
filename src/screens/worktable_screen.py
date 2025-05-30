@@ -15,12 +15,21 @@ SLOT_OUTLINE_COLOR = (156, 163, 175) # Borde para los slots
 SLOT_FILL_COLOR_EMPTY = (220, 220, 220, 180) # Relleno cuando está vacío
 SLOT_FILL_COLOR_HOVER = (187, 247, 208, 200) # Verde para hover correcto
 SLOT_TEXT_COLOR = (55, 65, 81)
+BUTTON_COLOR = (0, 122, 255)  # Azul para botones
+BUTTON_HOVER_COLOR = (0, 80, 170) # Azul más oscuro para hover
+BUTTON_TEXT_COLOR = (255, 255, 255)
+ALERT_BG_COLOR = (0, 0, 0, 180) # Fondo oscuro semi-transparente para alerta
+ALERT_TEXT_COLOR = (255, 255, 255)
+ALERT_BOX_COLOR = (75, 75, 75) # Color del recuadro de la alerta
 
 pygame.font.init() # Asegurar que las fuentes estén inicializadas
 TITLE_FONT = pygame.font.Font(None, 30)
 SIDEBAR_FONT = pygame.font.Font(None, 26)
 MINI_CARD_FONT = pygame.font.Font(None, 18) # Un poco más grande para el nombre en la tarjeta
 SLOT_NAME_FONT = pygame.font.Font(None, 20) # Para el nombre del slot (RAM, CPU)
+BUTTON_FONT = pygame.font.Font(None, 22)
+ALERT_FONT = pygame.font.Font(None, 28)
+ALERT_MESSAGE_FONT = pygame.font.Font(None, 24)
 
 class MiniCardComponent:
     """Representa un componente arrastrable que se mueve de la sidebar a un slot."""
@@ -142,7 +151,9 @@ class WorktableScreen:
         self.width = screen.get_width()
         self.height = screen.get_height()
         self.computer_type = computer_type
-        self.selected_component_names = selected_component_names
+        # Guardamos una copia para poder devolverla intacta si se presiona "Atrás"
+        self.initial_selected_components = list(selected_component_names) 
+        self.selected_component_names = selected_component_names # Esta lista podría modificarse si permitimos quitar componentes
 
         self.laptop_scheme_width = self.width * 0.65
         self.laptop_scheme_height = self.height * 0.85 # Un poco más alto el chasis
@@ -161,6 +172,21 @@ class WorktableScreen:
         self.currently_dragged_card = None
 
         self._setup_laptop_scheme_and_components()
+
+        # Botones y Alerta
+        self.show_alert = False
+        self.alert_message = "Por favor arrastre todas las tarjetas para continuar"
+        
+        button_width, button_height = 120, 35
+        self.back_button_rect = pygame.Rect(20, 20, button_width, button_height)
+        self.continue_button_rect = pygame.Rect(
+            self.width - button_width - 20, 
+            self.height - button_height - 20, 
+            button_width, 
+            button_height
+        )
+        
+        self.alert_box_rect = pygame.Rect(0, 0, 400, 100) # Se centrará en draw
 
     def _setup_laptop_scheme_and_components(self):
         # El tamaño de los slots DEBE ser igual al de las MiniCardComponent
@@ -237,45 +263,79 @@ class WorktableScreen:
     def run(self):
         running = True
         clock = pygame.time.Clock()
+        action_to_return = {"action": "back_to_selection", "selected_components": self.initial_selected_components} # Valor por defecto
+
         while running:
             mouse_pos = pygame.mouse.get_pos()
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                    return {"action": "quit"}
-                
-                # Primero, manejar el componente que se está arrastrando, si existe
-                if self.currently_dragged_card:
-                    if self.currently_dragged_card.handle_event(event, self.slots):
-                        # Si el evento fue MOUSEBUTTONUP y la tarjeta no se colocó, ya regresó a sidebar.
-                        # Si se colocó, su estado is_placed es True.
-                        if not self.currently_dragged_card.is_dragging: # Se soltó
-                            self.currently_dragged_card = None
-                        continue # Evento manejado por la tarjeta arrastrada
-                
-                # Si no se está arrastrando nada, o el evento no fue para la tarjeta arrastrada,
-                # verificar si se inicia un nuevo arrastre.
+                    action_to_return = {"action": "quit"}
+                    break # Salir del bucle de eventos
+
+                if self.show_alert:
+                    if event.type == pygame.MOUSEBUTTONDOWN: # Ocultar alerta con cualquier clic
+                        self.show_alert = False
+                    continue # No procesar más eventos si la alerta está activa y se hizo clic
+
+                # Manejo de eventos para los botones primero
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    for card in self.mini_cards: # Iterar sobre todas las tarjetas
-                        if card.rect.collidepoint(mouse_pos):
-                            # No se puede arrastrar si el slot destino ya está ocupado por OTRA tarjeta
-                            can_drag_this = True
-                            if not card.is_placed: # Solo chequear si está en sidebar y queremos moverla a un slot
-                                for slot_check in self.slots:
-                                    if slot_check.id_name == card.target_slot_id and slot_check.is_occupied():
-                                        can_drag_this = False
-                                        print(f"Slot {slot_check.display_name_on_slot} ya está ocupado.")
-                                        break
-                            
-                            if can_drag_this:
-                                if card.handle_event(event, self.slots): # Inicia el arrastre
-                                    self.currently_dragged_card = card
-                                    break # Solo una tarjeta se arrastra a la vez
-            
+                    if self.back_button_rect.collidepoint(mouse_pos):
+                        running = False
+                        action_to_return = {"action": "back_to_selection", "selected_components": self.initial_selected_components}
+                        break 
+                    
+                    elif self.continue_button_rect.collidepoint(mouse_pos):
+                        all_placed = True
+                        if not self.mini_cards: # Si no hay tarjetas para colocar
+                            all_placed = True
+                        else:
+                            for card in self.mini_cards:
+                                if not card.is_placed:
+                                    all_placed = False
+                                    break
+                        
+                        if all_placed:
+                            print("Todos los componentes colocados. Procediendo...")
+                            running = False
+                            action_to_return = {"action": "assembly_complete"} # O el siguiente paso
+                            break
+                        else:
+                            self.show_alert = True
+                            print("Alerta: Faltan componentes por colocar.")
+                        # No 'break' aquí para que el resto de la lógica de arrastre no se salte si se muestra la alerta
+
+                # Lógica de arrastrar y soltar tarjetas
+                if not self.show_alert : # Solo procesar arrastre si la alerta no está visible
+                    if self.currently_dragged_card:
+                        if self.currently_dragged_card.handle_event(event, self.slots):
+                            if not self.currently_dragged_card.is_dragging:
+                                self.currently_dragged_card = None
+                            # No 'continue' aquí necesariamente, podría haber otros eventos.
+                            # El 'handle_event' de la tarjeta devuelve True si manejó el evento.
+
+                    elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: # No es 'else', es independiente
+                        for card in self.mini_cards:
+                            if card.rect.collidepoint(mouse_pos):
+                                can_drag_this = True
+                                if not card.is_placed:
+                                    for slot_check in self.slots:
+                                        if slot_check.id_name == card.target_slot_id and slot_check.is_occupied():
+                                            can_drag_this = False
+                                            break
+                                if can_drag_this:
+                                    if card.handle_event(event, self.slots):
+                                        self.currently_dragged_card = card
+                                        break 
+            if not running: # Si un botón causó la salida, salir del bucle principal
+                break
+
             self.draw(mouse_pos)
             pygame.display.flip()
             clock.tick(60)
-        return {"action": "back_to_selection"}
+        
+        return action_to_return
 
     def draw(self, mouse_pos):
         self.screen.fill(BG_COLOR)
@@ -345,6 +405,53 @@ class WorktableScreen:
         title_surface = TITLE_FONT.render(f"Mesa de trabajo - {self.computer_type.capitalize()}", True, TITLE_TEXT_COLOR)
         title_bg_width = title_surface.get_width() + 40
         title_bg_rect = pygame.Rect((self.width - title_bg_width) // 2, 20, title_bg_width, 40)
+        # Ajustar para que no choque con el botón "Atrás" si el título es muy ancho
+        if title_bg_rect.left < self.back_button_rect.right + 10:
+            title_bg_rect.left = self.back_button_rect.right + 10
+            if title_bg_rect.right > self.width - 20 : # Asegurar que no se salga por la derecha
+                 title_bg_rect.right = self.width -20
+                 title_bg_rect.width = title_bg_rect.right - title_bg_rect.left
+
+
         pygame.draw.rect(self.screen, TITLE_BG_COLOR, title_bg_rect, border_radius=6)
         title_rect = title_surface.get_rect(center=title_bg_rect.center)
-        self.screen.blit(title_surface, title_rect) 
+        self.screen.blit(title_surface, title_rect)
+
+        # Dibujar botones
+        # Botón Atrás
+        back_btn_color = BUTTON_HOVER_COLOR if self.back_button_rect.collidepoint(mouse_pos) and not self.show_alert else BUTTON_COLOR
+        pygame.draw.rect(self.screen, back_btn_color, self.back_button_rect, border_radius=6)
+        back_text_surf = BUTTON_FONT.render("Atrás", True, BUTTON_TEXT_COLOR)
+        back_text_rect = back_text_surf.get_rect(center=self.back_button_rect.center)
+        self.screen.blit(back_text_surf, back_text_rect)
+
+        # Botón Continuar
+        cont_btn_color = BUTTON_HOVER_COLOR if self.continue_button_rect.collidepoint(mouse_pos) and not self.show_alert else BUTTON_COLOR
+        pygame.draw.rect(self.screen, cont_btn_color, self.continue_button_rect, border_radius=6)
+        cont_text_surf = BUTTON_FONT.render("Continuar", True, BUTTON_TEXT_COLOR)
+        cont_text_rect = cont_text_surf.get_rect(center=self.continue_button_rect.center)
+        self.screen.blit(cont_text_surf, cont_text_rect)
+        
+        # Dibujar Alerta si está activa
+        if self.show_alert:
+            # Fondo semi-transparente sobre toda la pantalla
+            overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+            overlay.fill(ALERT_BG_COLOR)
+            self.screen.blit(overlay, (0,0))
+            
+            # Caja de la alerta
+            self.alert_box_rect.center = (self.width // 2, self.height // 2)
+            pygame.draw.rect(self.screen, ALERT_BOX_COLOR, self.alert_box_rect, border_radius=10)
+            pygame.draw.rect(self.screen, MINI_CARD_BORDER, self.alert_box_rect, 2, border_radius=10) # Borde
+
+            alert_title_surf = ALERT_FONT.render("Alerta", True, ALERT_TEXT_COLOR)
+            alert_title_rect = alert_title_surf.get_rect(centerx=self.alert_box_rect.centerx, top=self.alert_box_rect.top + 15)
+            self.screen.blit(alert_title_surf, alert_title_rect)
+            
+            msg_surf = ALERT_MESSAGE_FONT.render(self.alert_message, True, ALERT_TEXT_COLOR)
+            msg_rect = msg_surf.get_rect(centerx=self.alert_box_rect.centerx, top=alert_title_rect.bottom + 10)
+            self.screen.blit(msg_surf, msg_rect)
+            
+            dismiss_surf = MINI_CARD_FONT.render("(Haz clic para cerrar)", True, (200,200,200))
+            dismiss_rect = dismiss_surf.get_rect(centerx=self.alert_box_rect.centerx, bottom=self.alert_box_rect.bottom -10)
+            self.screen.blit(dismiss_surf, dismiss_rect) 

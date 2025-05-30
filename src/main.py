@@ -41,7 +41,8 @@ def main():
                 final_selected_components = []
         
         elif current_screen == "estante":
-            estante_screen = EstanteScreen(screen, selected_computer_type)
+            # Pasar las selecciones previas si existen (cuando se regresa de la mesa de trabajo)
+            estante_screen = EstanteScreen(screen, selected_computer_type, final_selected_components if final_selected_components else None)
             estante_result = estante_screen.run_logic()
 
             if estante_result["action"] == "quit":
@@ -60,6 +61,13 @@ def main():
                 worktable_action = worktable.run()
                 if worktable_action["action"] == "quit":
                     current_screen = "quit"
+                elif worktable_action["action"] == "back_to_selection":
+                    # Regresar a la pantalla de componentes con las selecciones preservadas
+                    final_selected_components = worktable_action.get("selected_components", [])
+                    current_screen = "estante"
+                elif worktable_action["action"] == "assembly_complete":
+                    # Por ahora, regresar a la selección. En el futuro podría ir a una pantalla de éxito
+                    current_screen = "selection"
                 else:
                     current_screen = "selection"
             else:

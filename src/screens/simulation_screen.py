@@ -117,7 +117,7 @@ class ConfirmDialog:
 class EstanteScreen:
     """Pantalla de simulación con estantes de componentes modernos"""
     
-    def __init__(self, screen, computer_type):
+    def __init__(self, screen, computer_type, previous_selections=None):
         # Configuración básica
         self.screen = screen
         self.computer_type = computer_type # Guardar el tipo de computadora
@@ -150,8 +150,14 @@ class EstanteScreen:
         self.selected_components = []
         self.dialog = None
         
+        # Guardar selecciones previas para restaurar después de crear componentes
+        self.previous_selections = previous_selections or []
+        
         # Crear componentes
         self.setup_components()
+        
+        # Restaurar selecciones previas si existen
+        self.restore_previous_selections()
         
         # Botones de navegación
         self.setup_navigation_buttons()
@@ -239,6 +245,27 @@ class EstanteScreen:
             rect = pygame.Rect(x, y, card_width_external, card_height_external)
             card = ComponentCard(name, image_path, "external", rect)
             self.external_components.append(card)
+    
+    def restore_previous_selections(self):
+        """Restaura las selecciones previas basándose en los nombres de componentes"""
+        if not self.previous_selections:
+            return
+        
+        # Buscar y marcar como seleccionados los componentes que estaban previamente seleccionados
+        for component_name in self.previous_selections:
+            # Buscar en componentes internos
+            for card in self.internal_components:
+                if card.name == component_name:
+                    card.selected = True
+                    print(f"Restaurando selección: {card.name}")
+                    break
+            
+            # Buscar en componentes externos
+            for card in self.external_components:
+                if card.name == component_name:
+                    card.selected = True
+                    print(f"Restaurando selección: {card.name}")
+                    break
     
     def setup_navigation_buttons(self):
         """Configura los botones de navegación para la ventana más pequeña (970x810)"""
