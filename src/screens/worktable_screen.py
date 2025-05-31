@@ -200,7 +200,7 @@ class WorktableScreen:
 
         # Coordenadas reorganizadas para evitar superposiciones con mejor espaciado horizontal
         slot_data = [
-            # Fila superior - mejor espaciado horizontal
+            # Fila superior - mejor espaciado horizontal uniforme
             # DVD: Parte superior izquierda
             ("SLOT_DVD", "DVD", 
              (padding_chasis + 5, slot_area_height * 0.05, mini_card_w, mini_card_h), 
@@ -211,12 +211,12 @@ class WorktableScreen:
              (slot_area_width * 0.42, slot_area_height * 0.05, mini_card_w, mini_card_h), 
              "COOLER_1"),
             
-            # RAM: Parte superior derecha
+            # RAM: Parte superior derecha con espaciado uniforme
             ("SLOT_RAM", "RAM", 
-             (slot_area_width * 0.72, slot_area_height * 0.05, mini_card_w, mini_card_h), 
+             (slot_area_width * 0.78, slot_area_height * 0.05, mini_card_w, mini_card_h), 
              "RAM_1"),
             
-            # Fila media-superior - mejor espaciado
+            # Fila media-superior - mejor espaciado uniforme
             # CPU: Izquierda, debajo del DVD
             ("SLOT_CPU", "CPU", 
              (padding_chasis + 5, slot_area_height * 0.25, mini_card_w, mini_card_h), 
@@ -227,12 +227,12 @@ class WorktableScreen:
              (slot_area_width * 0.42, slot_area_height * 0.25, mini_card_w, mini_card_h), 
              "M2_1"),
             
-            # Wi-Fi: Derecha, debajo de la RAM
+            # Wi-Fi: Derecha, debajo de la RAM con espaciado uniforme
             ("SLOT_WIFI", "Wi-Fi", 
-             (slot_area_width * 0.72, slot_area_height * 0.25, mini_card_w, mini_card_h), 
+             (slot_area_width * 0.78, slot_area_height * 0.25, mini_card_w, mini_card_h), 
              "WIFI_1"),
             
-            # Fila media - mejor espaciado
+            # Fila media - mejor espaciado uniforme
             # GPU: Izquierda, centro vertical
             ("SLOT_GPU", "GPU", 
              (padding_chasis + 5, slot_area_height * 0.45, mini_card_w, mini_card_h), 
@@ -243,12 +243,12 @@ class WorktableScreen:
              (slot_area_width * 0.42, slot_area_height * 0.45, mini_card_w, mini_card_h), 
              "SSD_1"),
             
-            # Ventilador: Derecha
+            # Ventilador: Derecha con espaciado uniforme
             ("SLOT_FAN", "Ventilador", 
-             (slot_area_width * 0.72, slot_area_height * 0.45, mini_card_w, mini_card_h), 
+             (slot_area_width * 0.78, slot_area_height * 0.45, mini_card_w, mini_card_h), 
              "FAN_1"),
             
-            # Fila inferior - mismo espaciado que las otras filas
+            # Fila inferior - mismo espaciado uniforme que las otras filas
             # HDD: Izquierda inferior
             ("SLOT_HDD", "HDD", 
              (padding_chasis + 5, slot_area_height * 0.70, mini_card_w, mini_card_h), 
@@ -549,7 +549,7 @@ class WorktableDesktopScreen:
 
         # Coordenadas reorganizadas para evitar superposiciones con mejor espaciado horizontal
         slot_data = [
-            # Fila superior - mejor espaciado horizontal
+            # Fila superior - mejor espaciado horizontal uniforme
             # DVD: Parte superior izquierda
             ("SLOT_DVD", "DVD", 
              (padding_chasis + 5, slot_area_height * 0.05, mini_card_w, mini_card_h), 
@@ -560,12 +560,12 @@ class WorktableDesktopScreen:
              (slot_area_width * 0.42, slot_area_height * 0.05, mini_card_w, mini_card_h), 
              "COOLER_1"),
             
-            # RAM: Parte superior derecha
+            # RAM: Parte superior derecha con espaciado uniforme
             ("SLOT_RAM", "RAM", 
-             (slot_area_width * 0.72, slot_area_height * 0.05, mini_card_w, mini_card_h), 
+             (slot_area_width * 0.78, slot_area_height * 0.05, mini_card_w, mini_card_h), 
              "RAM_1"),
             
-            # Fila media-superior - mejor espaciado
+            # Fila media-superior - mejor espaciado uniforme
             # CPU: Izquierda, debajo del DVD
             ("SLOT_CPU", "CPU", 
              (padding_chasis + 5, slot_area_height * 0.25, mini_card_w, mini_card_h), 
@@ -576,12 +576,12 @@ class WorktableDesktopScreen:
              (slot_area_width * 0.42, slot_area_height * 0.25, mini_card_w, mini_card_h), 
              "M2_1"),
             
-            # Wi-Fi: Derecha, debajo de la RAM
+            # Wi-Fi: Derecha, debajo de la RAM con espaciado uniforme
             ("SLOT_WIFI", "Wi-Fi", 
-             (slot_area_width * 0.72, slot_area_height * 0.25, mini_card_w, mini_card_h), 
+             (slot_area_width * 0.78, slot_area_height * 0.25, mini_card_w, mini_card_h), 
              "WIFI_1"),
             
-            # Fila media - mejor espaciado
+            # Fila media - mejor espaciado uniforme
             # GPU: Izquierda, centro vertical
             ("SLOT_GPU", "GPU", 
              (padding_chasis + 5, slot_area_height * 0.45, mini_card_w, mini_card_h), 
@@ -592,12 +592,12 @@ class WorktableDesktopScreen:
              (slot_area_width * 0.42, slot_area_height * 0.45, mini_card_w, mini_card_h), 
              "SSD_1"),
             
-            # Ventilador: Derecha
+            # Ventilador: Derecha con espaciado uniforme
             ("SLOT_FAN", "Ventilador", 
-             (slot_area_width * 0.72, slot_area_height * 0.45, mini_card_w, mini_card_h), 
+             (slot_area_width * 0.78, slot_area_height * 0.45, mini_card_w, mini_card_h), 
              "FAN_1"),
             
-            # Fila inferior - mismo espaciado que las otras filas
+            # Fila inferior - mismo espaciado uniforme que las otras filas
             # HDD: Izquierda inferior
             ("SLOT_HDD", "HDD", 
              (padding_chasis + 5, slot_area_height * 0.70, mini_card_w, mini_card_h), 
@@ -634,15 +634,19 @@ class WorktableDesktopScreen:
             {"id": "DVD_1", "name": "DVD SATA", "img": "assets/images/componentesInternos/dvdsata.png", "slot": "SLOT_DVD"},
         ]
 
-        # Ajustar espaciado para las tarjetas más pequeñas en dos columnas
+        # Configuración para dos columnas - centradas en el sidebar
+        cards_per_column = 7  # Primera columna tendrá 7 componentes
+        column_width = mini_card_w + 8  # Ancho de cada columna con un poco más de padding
+        
+        # Ajustar espaciado para las tarjetas más pequeñas
         sidebar_item_y = 80  # Empezar más arriba
         sidebar_item_spacing = 6  # Menor espaciado entre tarjetas
         
-        # Configuración para dos columnas
-        cards_per_column = 7  # Primera columna tendrá 7 componentes
-        column_width = mini_card_w + 5  # Ancho de cada columna con un poco de padding
-        first_column_x = self.sidebar_x_start + 5
-        second_column_x = self.sidebar_x_start + column_width + 10
+        # Centrar las dos columnas en el sidebar
+        total_columns_width = (2 * mini_card_w) + 8  # Ancho total de las dos columnas
+        sidebar_center_x = self.sidebar_x_start + (self.sidebar_width // 2)
+        first_column_x = sidebar_center_x - (total_columns_width // 2)
+        second_column_x = first_column_x + column_width
         
         self.mini_cards = []
         card_index = 0
