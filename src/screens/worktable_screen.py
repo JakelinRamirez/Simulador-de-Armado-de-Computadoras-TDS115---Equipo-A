@@ -193,71 +193,37 @@ class WorktableScreen:
         mini_card_w, mini_card_h = 170, 95 # Tamaño actual de mini-tarjeta
         img_in_card_w, img_in_card_h = 80, 60 # Tamaño de imagen dentro de la mini-tarjeta
 
-        # Coordenadas ajustadas para un espaciado óptimo basado en la imagen de referencia
+        # Coordenadas ajustadas para un espaciado óptimo basado en la imagen de referencia (solo 5 ranuras para laptop)
         padding_chasis = 40 
         slot_area_width = self.laptop_scheme_rect.width - 2 * padding_chasis
         slot_area_height = self.laptop_scheme_rect.height - 2 * padding_chasis
 
-        # Coordenadas reorganizadas para evitar superposiciones con mejor espaciado horizontal
+        # Coordenadas reorganizadas para las 5 ranuras de laptop con mejor espaciado y centradas
         slot_data = [
-            # Fila superior - mejor espaciado horizontal uniforme
-            # DVD: Parte superior izquierda
-            ("SLOT_DVD", "DVD", 
-             (padding_chasis + 5, slot_area_height * 0.05, mini_card_w, mini_card_h), 
-             "DVD_1"),
-            
-            # Cooler: Parte superior centro con más separación
-            ("SLOT_COOLER", "Cooler", 
-             (slot_area_width * 0.42, slot_area_height * 0.05, mini_card_w, mini_card_h), 
-             "COOLER_1"),
-            
-            # RAM: Parte superior derecha con espaciado uniforme
+            # RAM: Lado izquierdo, centrado verticalmente
             ("SLOT_RAM", "RAM", 
-             (slot_area_width * 0.78, slot_area_height * 0.05, mini_card_w, mini_card_h), 
+             (padding_chasis + 10, slot_area_height * 0.45, mini_card_w, mini_card_h), 
              "RAM_1"),
             
-            # Fila media-superior - mejor espaciado uniforme
-            # CPU: Izquierda, debajo del DVD
+            # CPU: Centro-izquierda, arriba del centro
             ("SLOT_CPU", "CPU", 
-             (padding_chasis + 5, slot_area_height * 0.25, mini_card_w, mini_card_h), 
+             (slot_area_width * 0.25, slot_area_height * 0.25, mini_card_w, mini_card_h), 
              "CPU_1"),
             
-            # M.2: Centro, debajo del Cooler con más separación
+            # M.2: Superior derecha
             ("SLOT_M2", "M.2", 
-             (slot_area_width * 0.42, slot_area_height * 0.25, mini_card_w, mini_card_h), 
+             (slot_area_width * 0.60, slot_area_height * 0.20, mini_card_w, mini_card_h), 
              "M2_1"),
             
-            # Wi-Fi: Derecha, debajo de la RAM con espaciado uniforme
-            ("SLOT_WIFI", "Wi-Fi", 
-             (slot_area_width * 0.78, slot_area_height * 0.25, mini_card_w, mini_card_h), 
-             "WIFI_1"),
-            
-            # Fila media - mejor espaciado uniforme
-            # GPU: Izquierda, centro vertical
-            ("SLOT_GPU", "GPU", 
-             (padding_chasis + 5, slot_area_height * 0.45, mini_card_w, mini_card_h), 
-             "GPU_1"),
-            
-            # SSD: Centro con más separación
+            # SSD: Centro-derecha, debajo de M.2
             ("SLOT_SSD", "SSD", 
-             (slot_area_width * 0.42, slot_area_height * 0.45, mini_card_w, mini_card_h), 
+             (slot_area_width * 0.60, slot_area_height * 0.45, mini_card_w, mini_card_h), 
              "SSD_1"),
             
-            # Ventilador: Derecha con espaciado uniforme
-            ("SLOT_FAN", "Ventilador", 
-             (slot_area_width * 0.78, slot_area_height * 0.45, mini_card_w, mini_card_h), 
-             "FAN_1"),
-            
-            # Fila inferior - mismo espaciado uniforme que las otras filas
-            # HDD: Izquierda inferior
-            ("SLOT_HDD", "HDD", 
-             (padding_chasis + 5, slot_area_height * 0.70, mini_card_w, mini_card_h), 
-             "HDD_1"),
-            
-            # PSU: Centro inferior con mismo espaciado
-            ("SLOT_PSU", "PSU", 
-             (slot_area_width * 0.42, slot_area_height * 0.70, mini_card_w, mini_card_h), 
-             "PSU_1"),
+            # Wi-Fi: Inferior derecha
+            ("SLOT_WIFI", "Wi-Fi", 
+             (slot_area_width * 0.60, slot_area_height * 0.70, mini_card_w, mini_card_h), 
+             "WIFI_1"),
         ]
 
         self.slots = [] # Limpiar slots antes de recrearlos
@@ -270,6 +236,7 @@ class WorktableScreen:
             )
             self.slots.append(DropSlot(id_name, display_name, abs_rect, accepted_id))
 
+        # Componentes de laptop (solo los 5 correctos)
         laptop_component_defs = [
             {"id": "RAM_1", "name": "RAM DDR4 8GB", "img": "assets/images/componentesInternos/ram.png", "slot": "SLOT_RAM"},
             {"id": "CPU_1", "name": "Ryzen 7 5700X", "img": "assets/images/componentesInternos/cpu.png", "slot": "SLOT_CPU"},

@@ -137,6 +137,7 @@ class EstanteScreen:
         self.category_text = (255, 255, 255) # Texto de categorías
         self.type_indicator_bg = (22, 163, 74) # Verde oscuro para el fondo del indicador
         self.type_indicator_text = (240, 253, 244) # Texto casi blanco para el indicador
+        self.mandatory_selected_color = (168, 85, 247) # Púrpura para componentes obligatorios
         
         # Fuentes
         self.title_font = pygame.font.Font(None, 32)
@@ -158,6 +159,10 @@ class EstanteScreen:
         
         # Restaurar selecciones previas si existen
         self.restore_previous_selections()
+        
+        # Para Desktop: Seleccionar automáticamente ASUS Prime B550M
+        if self.computer_type == "desktop":
+            self.auto_select_motherboard()
         
         # Botones de navegación
         self.setup_navigation_buttons()
@@ -305,10 +310,13 @@ class EstanteScreen:
     def draw_component_card(self, card):
         """Dibuja una tarjeta de componente con espaciado mejorado y estado de bloqueo"""
         is_disabled = (self.computer_type == "laptop" and card.category == "desktop" and self.show_internal)
+        is_mandatory_motherboard = (self.computer_type == "desktop" and card.name == "ASUS Prime B550M")
         
         # Color de fondo según selección o estado deshabilitado
         if is_disabled:
             bg_color = self.disabled_color
+        elif is_mandatory_motherboard:
+            bg_color = self.mandatory_selected_color  # Color especial para motherboard obligatorio
         elif card.selected:
             bg_color = self.selected_color
         else:
@@ -336,7 +344,7 @@ class EstanteScreen:
         # Texto del componente
         if is_disabled:
             text_color = self.disabled_text_color
-        elif card.selected:
+        elif card.selected or is_mandatory_motherboard:
             text_color = (255,255,255)
         else:
             text_color = self.text_color
@@ -357,6 +365,10 @@ class EstanteScreen:
             button_text_str = "No disponible"
             pygame.draw.rect(self.screen, button_color, card.button_rect, border_radius=5)
             pygame.draw.rect(self.screen, self.disabled_text_color, card.button_rect, 1, border_radius=5) # Borde tenue
+        elif is_mandatory_motherboard:
+            button_color = (120, 53, 190)  # Púrpura más oscuro para el botón
+            button_text_str = "Requerido"
+            pygame.draw.rect(self.screen, button_color, card.button_rect, border_radius=5)
         elif card.selected:
             button_color = (220, 38, 38)
             button_text_str = "Quitar"
@@ -450,24 +462,25 @@ class EstanteScreen:
         for card in self.internal_components + self.external_components:
             card.selected = False
     
-    def handle_component_click(self, pos):
-        """Maneja clics en componentes, respetando el estado de bloqueo"""
-        components = self.internal_components if self.show_internal else self.external_components
+    def handle_card_click(self, card):
+        """Maneja el clic en una tarjeta de componente"""
+        is_disabled = (self.computer_type == "laptop" and card.category == "desktop" and self.show_internal)
+        is_mandatory_motherboard = (self.computer_type == "desktop" and card.name == "ASUS Prime B550M")
         
-        for card in components:
-            # Verificar si el componente está bloqueado
-            is_disabled = (self.computer_type == "laptop" and card.category == "desktop" and self.show_internal)
-            if is_disabled:
-                continue # Saltar si está deshabilitado
-
-            if card.button_rect.collidepoint(pos):
-                card.selected = not card.selected
-                if card.selected:
-                    print(f"Componente seleccionado: {card.name}")
-                else:
-                    print(f"Componente deseleccionado: {card.name}")
-                return True
-        return False
+        # No permitir interacción con componentes deshabilitados o motherboard obligatorio
+        if is_disabled or is_mandatory_motherboard:
+            return
+        
+        if card.selected:
+            card.selected = False
+            if card.name in self.selected_components:
+                self.selected_components.remove(card.name)
+        else:
+            card.selected = True
+            if card.name not in self.selected_components:
+                self.selected_components.append(card.name)
+        
+        print(f"Componente {'seleccionado' if card.selected else 'deseleccionado'}: {card.name}")
     
     def show_confirmation_dialog(self, message):
         """Muestra diálogo de confirmación"""
@@ -519,11 +532,22 @@ class EstanteScreen:
                             current_shelf_components = self.internal_components if self.show_internal else self.external_components
                             has_current_shelf_selection = any(card.selected for card in current_shelf_components)
 
+                            # Para Desktop: No contar ASUS Prime B550M en la validación
+                            if self.computer_type == "desktop":
+                                selected_internals_without_motherboard = [card for card in selected_internals if card.name != "ASUS Prime B550M"]
+                                min_internal_required = 2
+                            else:
+                                selected_internals_without_motherboard = selected_internals
+                                min_internal_required = 1
+
                             if not has_current_shelf_selection:
                                 shelf_name = "internos" if self.show_internal else "externos"
                                 self.show_alert(f"Debes seleccionar al menos un\ncomponente del estante de\ncomponentes {shelf_name} para continuar.")
-                            elif not selected_internals:
-                                self.show_alert("Debes seleccionar al menos un\ncomponente del estante de\ncomponentes INTERNOS para continuar.")
+                            elif len(selected_internals_without_motherboard) < min_internal_required:
+                                if self.computer_type == "desktop":
+                                    self.show_alert("Debes seleccionar al menos 2\ncomponentes INTERNOS adicionales\n(además de la tarjeta madre)\npara continuar.")
+                                else:
+                                    self.show_alert("Debes seleccionar al menos un\ncomponente del estante de\ncomponentes INTERNOS para continuar.")
                             elif not selected_externals:
                                 self.show_alert("Debes seleccionar al menos un\ncomponente del estante de\ncomponentes EXTERNOS para continuar.")
                             else:
@@ -532,7 +556,12 @@ class EstanteScreen:
                                 running = False
                                 action_result = {"action": "proceed_to_worktable", "selected_components": final_selected_names}
                         else:
-                            self.handle_component_click(event.pos)
+                            # Manejar clics en tarjetas de componentes
+                            components = self.internal_components if self.show_internal else self.external_components
+                            for card in components:
+                                if card.button_rect.collidepoint(event.pos):
+                                    self.handle_card_click(card)
+                                    break
             
             self.draw()
             pygame.display.flip() # Asegurarse que se actualiza el display en este bucle
@@ -553,4 +582,14 @@ class EstanteScreen:
         # Para este ejercicio, lo dejaré para que llame a run_logic y convierta su salida
         # a lo que el main.py ANTES esperaba (un booleano)
         result = self.run_logic()
-        return result["action"] == "back_to_selection" 
+        return result["action"] == "back_to_selection"
+
+    def auto_select_motherboard(self):
+        """Selecciona automáticamente ASUS Prime B550M"""
+        for card in self.internal_components:
+            if card.name == "ASUS Prime B550M":
+                card.selected = True
+                if card.name not in self.selected_components:
+                    self.selected_components.append(card.name)
+                print(f"Componente seleccionado automáticamente: {card.name}")
+                break 
