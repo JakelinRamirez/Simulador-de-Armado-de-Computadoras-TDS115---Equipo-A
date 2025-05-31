@@ -7,7 +7,7 @@ import pygame
 from screens.selection_screen import SelectionScreen
 from screens.start_screen import StartScreen
 from screens.simulation_screen import EstanteScreen
-from screens.worktable_screen import WorktableScreen
+from screens.worktable_screen import WorktableScreen, WorktableDesktopScreen
 
 def main():
     """Función principal que maneja el flujo de la aplicación"""
@@ -49,7 +49,7 @@ def main():
                 current_screen = "quit"
             elif estante_result["action"] == "back_to_selection":
                 current_screen = "selection"
-            elif estante_result["action"] == "proceed_to_worktable" and selected_computer_type == "laptop":
+            elif estante_result["action"] == "proceed_to_worktable":
                 final_selected_components = estante_result.get("selected_components", [])
                 current_screen = "worktable"
             else:
@@ -59,17 +59,24 @@ def main():
             if selected_computer_type == "laptop":
                 worktable = WorktableScreen(screen, selected_computer_type, final_selected_components)
                 worktable_action = worktable.run()
-                if worktable_action["action"] == "quit":
-                    current_screen = "quit"
-                elif worktable_action["action"] == "back_to_selection":
-                    # Regresar a la pantalla de componentes con las selecciones preservadas
-                    final_selected_components = worktable_action.get("selected_components", [])
-                    current_screen = "estante"
-                elif worktable_action["action"] == "assembly_complete":
-                    # Por ahora, regresar a la selección. En el futuro podría ir a una pantalla de éxito
-                    current_screen = "selection"
-                else:
-                    current_screen = "selection"
+            elif selected_computer_type == "desktop":
+                worktable = WorktableDesktopScreen(screen, selected_computer_type, final_selected_components)
+                worktable_action = worktable.run()
+            else:
+                # Fallback en caso de tipo no reconocido
+                current_screen = "selection"
+                continue
+                
+            # Procesar la acción devuelta por cualquiera de las dos pantallas de mesa de trabajo
+            if worktable_action["action"] == "quit":
+                current_screen = "quit"
+            elif worktable_action["action"] == "back_to_selection":
+                # Regresar a la pantalla de componentes con las selecciones preservadas
+                final_selected_components = worktable_action.get("selected_components", [])
+                current_screen = "estante"
+            elif worktable_action["action"] == "assembly_complete":
+                # Por ahora, regresar a la selección. En el futuro podría ir a una pantalla de éxito
+                current_screen = "selection"
             else:
                 current_screen = "selection"
     
