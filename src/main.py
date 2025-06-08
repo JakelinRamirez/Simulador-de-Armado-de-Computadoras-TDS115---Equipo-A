@@ -7,7 +7,7 @@ import pygame
 from screens.selection_screen import SelectionScreen
 from screens.start_screen import StartScreen
 from screens.simulation_screen import EstanteScreen
-from screens.worktable_screen import WorktableScreen, WorktableDesktopScreen
+from screens.worktable_screen import WorktableScreen, WorktableDesktopScreen, LaptopExternalConnectionScreen
 
 def main():
     """Función principal que maneja el flujo de la aplicación"""
@@ -18,9 +18,10 @@ def main():
     screen = pygame.display.set_mode((970, 810))
     pygame.display.set_caption("Simulador de Computadoras - TDS115")
     
-    current_screen = "start"
+    current_screen = "start"  # Restaurar el flujo normal con la pantalla de inicio
     selected_computer_type = None
     final_selected_components = []
+    external_components = []  # Para guardar componentes externos separadamente
 
     while current_screen != "quit":
         if current_screen == "start":
@@ -50,7 +51,36 @@ def main():
             elif estante_result["action"] == "back_to_selection":
                 current_screen = "selection"
             elif estante_result["action"] == "proceed_to_worktable":
-                final_selected_components = estante_result.get("selected_components", [])
+                all_selected_components = estante_result.get("selected_components", [])
+                print(f"=== DEBUG: Processing components ===")
+                print(f"All selected components: {all_selected_components}")
+                
+                # Separar componentes internos y externos
+                internal_components = []
+                selected_external_components = []
+                
+                # Lista de componentes externos conocidos
+                external_component_names = [
+                    "Monitor LED 24\"", "Teclado Mecanico", "Mouse Razen", 
+                    "Bocinas Estereo", "Webcam HD 1080p", "Microfono USB", 
+                    "UPS", "HUB USB"
+                ]
+                print(f"Known external components: {external_component_names}")
+                
+                for component in all_selected_components:
+                    print(f"Processing component: '{component}'")
+                    if component in external_component_names:
+                        selected_external_components.append(component)
+                        print(f"  -> Classified as EXTERNAL")
+                    else:
+                        internal_components.append(component)
+                        print(f"  -> Classified as INTERNAL")
+                
+                final_selected_components = internal_components
+                external_components = selected_external_components
+                print(f"Final internal components: {internal_components}")
+                print(f"Final external components: {external_components}")
+                print(f"=== End component processing ===")
                 current_screen = "worktable"
             else:
                 current_screen = "selection"
@@ -75,7 +105,39 @@ def main():
                 final_selected_components = worktable_action.get("selected_components", [])
                 current_screen = "estante"
             elif worktable_action["action"] == "assembly_complete":
-                # Por ahora, regresar a la selección. En el futuro podría ir a una pantalla de éxito
+                print("=== DEBUG: Assembly complete ===")
+                print(f"Computer type: {selected_computer_type}")
+                print(f"External components list: {external_components}")
+                print(f"External components count: {len(external_components)}")
+                print(f"Is laptop? {selected_computer_type == 'laptop'}")
+                print(f"Has external components? {bool(external_components)}")
+                print(f"Condition result: {selected_computer_type == 'laptop' and external_components}")
+                
+                if selected_computer_type == "laptop" and external_components:
+                    # Para laptop con componentes externos, ir a pantalla de conexión externa
+                    print("DEBUG: Going to external_connection screen")
+                    current_screen = "external_connection"
+                else:
+                    # Para desktop o laptop sin externos, terminar
+                    print("DEBUG: Going back to selection (no external components or not laptop)")
+                    current_screen = "selection"
+            else:
+                current_screen = "selection"
+
+        elif current_screen == "external_connection":
+            # Pantalla de conexión de componentes externos para laptop
+            print("Iniciando pantalla de conexión externa...")
+            external_screen = LaptopExternalConnectionScreen(screen, selected_computer_type, external_components)
+            external_action = external_screen.run()
+            
+            if external_action["action"] == "quit":
+                current_screen = "quit"
+            elif external_action["action"] == "back_to_worktable":
+                # Regresar a la mesa de trabajo interna
+                current_screen = "worktable"
+            elif external_action["action"] == "assembly_complete":
+                # Ensamble completado totalmente
+                print("¡Ensamble completo!")
                 current_screen = "selection"
             else:
                 current_screen = "selection"

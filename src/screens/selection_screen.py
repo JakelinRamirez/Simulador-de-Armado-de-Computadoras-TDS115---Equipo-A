@@ -27,10 +27,21 @@ class SelectionScreen:
         self.title_text = self.title_font.render("Selecciona el tipo de computadora", True, self.text_color)
         
         # Cargar y redimensionar imágenes
-        self.laptop_image = pygame.image.load("assets/images/LaptopIcon.png").convert_alpha()
-        self.desktop_image = pygame.image.load("assets/images/DesktopIcon.png").convert_alpha()
-        self.laptop_image = pygame.transform.scale(self.laptop_image, (140, 120))
-        self.desktop_image = pygame.transform.scale(self.desktop_image, (140, 120))
+        try:
+            self.laptop_image = pygame.image.load("../src/assets/images/LaptopIcon.png").convert_alpha()
+            self.laptop_image = pygame.transform.scale(self.laptop_image, (140, 120))
+        except:
+            # Crear imagen temporal si no se puede cargar
+            self.laptop_image = pygame.Surface((140, 120))
+            self.laptop_image.fill((100, 150, 200))  # Azul para laptop
+            
+        try:
+            self.desktop_image = pygame.image.load("../src/assets/images/DesktopIcon.png").convert_alpha()
+            self.desktop_image = pygame.transform.scale(self.desktop_image, (140, 120))
+        except:
+            # Crear imagen temporal si no se puede cargar
+            self.desktop_image = pygame.Surface((140, 120))
+            self.desktop_image.fill((150, 100, 200))  # Púrpura para desktop
         
         # Configuración de tarjetas más grandes y centradas
         card_width, card_height = 280, 320

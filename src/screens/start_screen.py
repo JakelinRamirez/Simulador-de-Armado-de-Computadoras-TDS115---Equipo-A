@@ -22,9 +22,21 @@ class StartScreen:
         self.subtitle_font = pygame.font.Font(None, 32)
         self.button_font = pygame.font.Font(None, 28)
         
-        # Cargar y redimensionar logo
-        self.logo = pygame.image.load("assets/images/logo.png").convert_alpha()
-        self.logo = pygame.transform.smoothscale(self.logo, (180, 180))
+        # Cargar y escalar logo
+        try:
+            self.logo = pygame.image.load("../src/assets/images/logo.png").convert_alpha()
+            # Escalar logo si es necesario
+            logo_width, logo_height = 200, 150  # Tamaño deseado
+            self.logo = pygame.transform.scale(self.logo, (logo_width, logo_height))
+        except:
+            # Crear logo placeholder si no se puede cargar
+            self.logo = pygame.Surface((200, 150))
+            self.logo.fill((100, 150, 200))
+            # Agregar texto "LOGO" al placeholder
+            font = pygame.font.Font(None, 48)
+            text = font.render("LOGO", True, (255, 255, 255))
+            text_rect = text.get_rect(center=(100, 75))
+            self.logo.blit(text, text_rect)
         
         # Textos principales
         self.title_text = self.title_font.render("Simulador de Computadoras", True, self.text_color)
