@@ -542,14 +542,14 @@ class EstanteScreen:
 
                             if not has_current_shelf_selection:
                                 shelf_name = "internos" if self.show_internal else "externos"
-                                self.show_alert(f"Debes seleccionar al menos un\ncomponente del estante de\ncomponentes {shelf_name} para continuar.")
+                                self.show_alert("Debes seleccionar al menos un\ncomponente INTERNO para continuar.")
                             elif len(selected_internals_without_motherboard) < min_internal_required:
                                 if self.computer_type == "desktop":
                                     self.show_alert("Debes seleccionar al menos 2\ncomponentes INTERNOS adicionales\n(además de la tarjeta madre)\npara continuar.")
                                 else:
                                     self.show_alert("Debes seleccionar al menos un\ncomponente del estante de\ncomponentes INTERNOS para continuar.")
-                            elif not selected_externals:
-                                self.show_alert("Debes seleccionar al menos un\ncomponente del estante de\ncomponentes EXTERNOS para continuar.")
+                            elif self.computer_type == "desktop" and not selected_externals:
+                                self.show_alert("Debes seleccionar al menos 1\ncomponente EXTERNO adicional\n(además del monitor)\npara continuar.")                        
                             else:
                                 final_selected_names = [card.name for card in selected_internals + selected_externals]
                                 print(f"Boton 'Continuar Ensamble' presionado. Todos los componentes requeridos seleccionados: {final_selected_names}")

@@ -242,7 +242,7 @@ class WorktableScreen:
             {"id": "CPU_1", "name": "Ryzen 7 5700X", "img": "assets/images/componentesInternos/cpu.png", "slot": "SLOT_CPU"},
             {"id": "M2_1", "name": "M.2 NVMe SSD", "img": "assets/images/componentesInternos/m.2.png", "slot": "SLOT_M2"},
             {"id": "SSD_1", "name": "Kingston SSD 1TB", "img": "assets/images/componentesInternos/ssd.png", "slot": "SLOT_SSD"},
-            {"id": "WIFI_1", "name": "Modulo Wi-Fi/BT", "img": "assets/images/componentesInternos/módulo Wi-Fi:Bluetooth.png", "slot": "SLOT_WIFI"}
+            {"id": "WIFI_1", "name": "Modulo Wi-Fi/BT", "img": "assets/images/componentesInternos/módulo Wi-FiBluetooth.png", "slot": "SLOT_WIFI"}
         ]
 
         sidebar_item_y = 100
@@ -299,8 +299,9 @@ class WorktableScreen:
                         
                         if all_placed:
                             print("Todos los componentes colocados. Procediendo...")
+                            placed_components = [card.display_name for card in self.mini_cards if card.is_placed]
                             running = False
-                            action_to_return = {"action": "assembly_complete"} # O el siguiente paso
+                            action_to_return = {"action": "assembly_complete", "selected_components":placed_components} # O el siguiente paso
                             break
                         else:
                             self.show_alert = True
@@ -593,7 +594,7 @@ class WorktableDesktopScreen:
             {"id": "CPU_1", "name": "Ryzen 7 5700X", "img": "assets/images/componentesInternos/cpu.png", "slot": "SLOT_CPU"},
             {"id": "PSU_1", "name": "PSU 600W", "img": "assets/images/componentesInternos/Fuente de poder 600W.png", "slot": "SLOT_PSU"},
             {"id": "HDD_1", "name": "HDD Seagate 1TB", "img": "assets/images/componentesInternos/HDD Seagate 1TB  .png", "slot": "SLOT_HDD"},
-            {"id": "WIFI_1", "name": "Modulo Wi-Fi/BT", "img": "assets/images/componentesInternos/módulo Wi-Fi:Bluetooth.png", "slot": "SLOT_WIFI"},
+            {"id": "WIFI_1", "name": "Modulo Wi-Fi/BT", "img": "assets/images/componentesInternos/módulo Wi-FiBluetooth.png", "slot": "SLOT_WIFI"},
             {"id": "FAN_1", "name": "Ventilador ARGB", "img": "assets/images/componentesInternos/Ventilador 120mm ARGB.png", "slot": "SLOT_FAN"},
             {"id": "M2_1", "name": "M.2 NVMe SSD", "img": "assets/images/componentesInternos/m.2.png", "slot": "SLOT_M2"},
             {"id": "COOLER_1", "name": "Cooler Master H212", "img": "assets/images/componentesInternos/Cooler Master Hyper 212.png", "slot": "SLOT_COOLER"},
@@ -677,8 +678,9 @@ class WorktableDesktopScreen:
                         
                         if all_placed:
                             print("Todos los componentes colocados. Procediendo...")
+                            placed_components = [card.display_name for card in self.mini_cards if card.is_placed]
                             running = False
-                            action_to_return = {"action": "assembly_complete"}
+                            action_to_return = {"action": "assembly_complete", "selected_components": placed_components}
                             break
                         else:
                             self.show_alert = True
