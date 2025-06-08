@@ -7,7 +7,7 @@ import pygame
 from screens.selection_screen import SelectionScreen
 from screens.start_screen import StartScreen
 from screens.simulation_screen import EstanteScreen
-from screens.worktable_screen import WorktableScreen, WorktableDesktopScreen, LaptopExternalConnectionScreen, DesktopExternalConnectionScreen, LaptopBootScreen
+from screens.worktable_screen import WorktableScreen, WorktableDesktopScreen, LaptopExternalConnectionScreen, DesktopExternalConnectionScreen, LaptopBootScreen, DesktopBootScreen
 
 def main():
     """Función principal que maneja el flujo de la aplicación"""
@@ -142,11 +142,13 @@ def main():
                 # Regresar a la mesa de trabajo interna
                 current_screen = "worktable"
             elif external_action["action"] == "next_to_boot":
-                # Para laptop: ir a pantalla de encendido
+                # Ir a pantalla de encendido según el tipo
                 if selected_computer_type == "laptop":
                     current_screen = "laptop_boot"
+                elif selected_computer_type == "desktop":
+                    current_screen = "desktop_boot"
                 else:
-                    # Para desktop: terminar (no hay pantalla de encendido para desktop)
+                    # Fallback
                     print("¡Ensamble completo!")
                     current_screen = "selection"
             elif external_action["action"] == "assembly_complete":
@@ -160,6 +162,19 @@ def main():
             # Pantalla de encendido de laptop
             print("Iniciando pantalla de encendido de laptop...")
             boot_screen = LaptopBootScreen(screen, final_selected_components)
+            boot_action = boot_screen.run()
+            
+            if boot_action["action"] == "quit":
+                current_screen = "quit"
+            elif boot_action["action"] == "back_to_selection":
+                current_screen = "selection"
+            else:
+                current_screen = "selection"
+        
+        elif current_screen == "desktop_boot":
+            # Pantalla de encendido de desktop
+            print("Iniciando pantalla de encendido de desktop...")
+            boot_screen = DesktopBootScreen(screen, final_selected_components)
             boot_action = boot_screen.run()
             
             if boot_action["action"] == "quit":
