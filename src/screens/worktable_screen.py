@@ -1162,17 +1162,17 @@ class LaptopExternalConnectionScreen:
 
     def _draw_navigation_buttons(self):
         """Dibuja los botones de navegación"""
+        button_font = pygame.font.Font(None, 24)
+        
         # Botón Atrás
         pygame.draw.rect(self.screen, (220, 53, 69), self.back_button_rect, border_radius=5)
-        back_font = pygame.font.Font(None, 20)
-        back_text = back_font.render("← Atrás", True, (255, 255, 255))
+        back_text = button_font.render("Atrás", True, (255, 255, 255))
         back_text_rect = back_text.get_rect(center=self.back_button_rect.center)
         self.screen.blit(back_text, back_text_rect)
-
-        # Botón Continuar
+        
+        # Botón Siguiente (era Finalizar)
         pygame.draw.rect(self.screen, (34, 197, 94), self.continue_button_rect, border_radius=5)
-        continue_font = pygame.font.Font(None, 20)
-        continue_text = continue_font.render("Finalizar", True, (255, 255, 255))
+        continue_text = button_font.render("Siguiente", True, (255, 255, 255))
         continue_text_rect = continue_text.get_rect(center=self.continue_button_rect.center)
         self.screen.blit(continue_text, continue_text_rect)
 
@@ -1224,7 +1224,7 @@ class LaptopExternalConnectionScreen:
                     elif self.continue_button_rect.collidepoint(mouse_pos):
                         # Verificar que todos los componentes estén conectados
                         if self._all_components_connected():
-                            action_result = {"action": "assembly_complete"}
+                            action_result = {"action": "next_to_boot"}
                             running = False
                         else:
                             self.show_alert = True
@@ -1622,17 +1622,17 @@ class DesktopExternalConnectionScreen:
 
     def _draw_navigation_buttons(self):
         """Dibuja los botones de navegación"""
+        button_font = pygame.font.Font(None, 24)
+        
         # Botón Atrás
         pygame.draw.rect(self.screen, (220, 53, 69), self.back_button_rect, border_radius=5)
-        back_font = pygame.font.Font(None, 20)
-        back_text = back_font.render("← Atrás", True, (255, 255, 255))
+        back_text = button_font.render("Atrás", True, (255, 255, 255))
         back_text_rect = back_text.get_rect(center=self.back_button_rect.center)
         self.screen.blit(back_text, back_text_rect)
-
-        # Botón Continuar
+        
+        # Botón Siguiente (era Finalizar)
         pygame.draw.rect(self.screen, (34, 197, 94), self.continue_button_rect, border_radius=5)
-        continue_font = pygame.font.Font(None, 20)
-        continue_text = continue_font.render("Finalizar", True, (255, 255, 255))
+        continue_text = button_font.render("Siguiente", True, (255, 255, 255))
         continue_text_rect = continue_text.get_rect(center=self.continue_button_rect.center)
         self.screen.blit(continue_text, continue_text_rect)
 
@@ -1716,3 +1716,440 @@ class DesktopExternalConnectionScreen:
     def _all_components_connected(self):
         """Verifica si todos los componentes han sido conectados"""
         return all(card.is_placed for card in self.mini_cards) if self.mini_cards else True 
+
+
+class LaptopBootScreen:
+    """Pantalla de encendido de laptop - muestra si enciende correctamente o pantalla azul"""
+    def __init__(self, screen, selected_internal_components):
+        self.screen = screen
+        self.width = screen.get_width()
+        self.height = screen.get_height()
+        self.selected_internal_components = selected_internal_components
+        
+        # Estados de la pantalla
+        self.laptop_powered_on = False
+        self.animation_phase = 0  # Para la animación de encendido
+        self.animation_timer = 0
+        self.show_message = False
+        self.message_timer = 0
+        
+        # Verificar si todos los componentes internos están presentes
+        required_laptop_components = [
+            "RAM DDR4 8GB", "Ryzen 7 5700X", "Kingston SSD 1TB", 
+            "M.2 NVMe SSD", "Modulo Wi-Fi/BT"
+        ]
+        self.all_components_present = all(comp in selected_internal_components for comp in required_laptop_components)
+        
+        # Área de la laptop (MUCHO MÁS ALARGADA)
+        self.laptop_width = 500  # Mantener ancho
+        self.laptop_height = 420  # Era 350, ahora 420 (mucho más alto)
+        self.laptop_rect = pygame.Rect(
+            (self.width - self.laptop_width) // 2 - 150,  # Mover más a la izquierda para dar espacio al mensaje
+            (self.height - self.laptop_height) // 2 - 10,  # Centrar verticalmente
+            self.laptop_width,
+            self.laptop_height
+        )
+        
+        # Área de la pantalla dentro de la laptop (ajustada proporcionalmente)
+        screen_margin = 25
+        self.screen_rect = pygame.Rect(
+            self.laptop_rect.x + screen_margin,
+            self.laptop_rect.y + screen_margin,
+            self.laptop_rect.width - 2 * screen_margin,
+            self.laptop_rect.height - 150  # Era 125, ahora más espacio para teclado más grande
+        )
+        
+        # Botones
+        button_width, button_height = 120, 40
+        self.power_button_rect = pygame.Rect(
+            self.laptop_rect.right + 50,
+            self.laptop_rect.centery - button_height // 2,
+            button_width,
+            button_height
+        )
+        
+        self.finish_button_rect = pygame.Rect(
+            self.width - button_width - 30,
+            self.height - button_height - 30,
+            button_width,
+            button_height
+        )
+
+    def draw(self):
+        """Dibuja la pantalla de encendido de laptop"""
+        # Fondo
+        self.screen.fill((245, 248, 252))
+        
+        # Título
+        title_font = pygame.font.Font(None, 36)
+        title_text = title_font.render("Test de Encendido - Laptop", True, (30, 41, 59))
+        title_rect = title_text.get_rect(center=(self.width // 2, 40))
+        self.screen.blit(title_text, title_rect)
+        
+        # Dibujar laptop
+        self._draw_laptop()
+        
+        # Dibujar botón de encendido
+        self._draw_power_button()
+        
+        # Dibujar botón finalizar
+        self._draw_finish_button()
+        
+        # Dibujar mensaje si está activo
+        if self.show_message:
+            self._draw_message()
+
+    def _draw_laptop(self):
+        """Dibuja la ilustración de la laptop idéntica a la imagen de referencia"""
+        
+        # === SOMBRA SUTIL ===
+        shadow_offset = 6
+        shadow_rect = self.laptop_rect.copy()
+        shadow_rect.x += shadow_offset
+        shadow_rect.y += shadow_offset
+        # Sombra suave
+        for i in range(4):
+            alpha = 20 - (i * 5)
+            shadow_color = (0, 0, 0, alpha)
+            shadow_surface = pygame.Surface((shadow_rect.width + i*2, shadow_rect.height + i*2), pygame.SRCALPHA)
+            pygame.draw.rect(shadow_surface, shadow_color, 
+                           (0, 0, shadow_rect.width + i*2, shadow_rect.height + i*2), border_radius=12)
+            self.screen.blit(shadow_surface, (shadow_rect.x - i, shadow_rect.y - i))
+        
+        # === CARCASA PRINCIPAL (COLOR GRIS PLATEADO) ===
+        # Base principal gris plateado
+        pygame.draw.rect(self.screen, (180, 180, 180), self.laptop_rect, border_radius=12)
+        
+        # Gradiente para efecto 3D sutil
+        pygame.draw.rect(self.screen, (160, 160, 160), 
+                        (self.laptop_rect.x + 2, self.laptop_rect.y + 2, 
+                         self.laptop_rect.width - 4, self.laptop_rect.height - 4), border_radius=10)
+        
+        # Borde exterior oscuro
+        pygame.draw.rect(self.screen, (120, 120, 120), self.laptop_rect, 3, border_radius=12)
+        
+        # === BISEL DE LA PANTALLA (NEGRO) ===
+        bezel_margin = 15  # Bisel más grueso como en la imagen
+        bezel_rect = pygame.Rect(
+            self.screen_rect.x - bezel_margin,
+            self.screen_rect.y - bezel_margin,
+            self.screen_rect.width + 2 * bezel_margin,
+            self.screen_rect.height + 2 * bezel_margin
+        )
+        
+        # Bisel negro principal
+        pygame.draw.rect(self.screen, (25, 25, 25), bezel_rect, border_radius=8)
+        pygame.draw.rect(self.screen, (15, 15, 15), bezel_rect, 2, border_radius=8)
+        
+        # === PANTALLA ===
+        if not self.laptop_powered_on:
+            # Pantalla apagada (gris claro como en la imagen)
+            pygame.draw.rect(self.screen, (240, 240, 240), self.screen_rect, border_radius=4)
+            # Borde sutil de la pantalla
+            pygame.draw.rect(self.screen, (200, 200, 200), self.screen_rect, 1, border_radius=4)
+        elif self.all_components_present:
+            # Pantalla encendida exitosamente
+            self._draw_successful_boot()
+        else:
+            # Pantalla azul de la muerte
+            self._draw_blue_screen()
+        
+        # === CÁMARA WEB (pequeño círculo negro arriba) ===
+        camera_x = self.laptop_rect.centerx
+        camera_y = bezel_rect.y + 8
+        pygame.draw.circle(self.screen, (10, 10, 10), (camera_x, camera_y), 3)
+        pygame.draw.circle(self.screen, (40, 40, 40), (camera_x, camera_y), 2)
+        
+        # === ÁREA DEL TECLADO (parte inferior gris) ===
+        keyboard_area_y = self.screen_rect.bottom + 25
+        keyboard_area_rect = pygame.Rect(
+            self.laptop_rect.x + 15,
+            keyboard_area_y,
+            self.laptop_rect.width - 30,
+            self.laptop_rect.bottom - keyboard_area_y - 15
+        )
+        
+        # Fondo del área del teclado (mismo gris que la carcasa)
+        pygame.draw.rect(self.screen, (160, 160, 160), keyboard_area_rect, border_radius=6)
+        
+        # === TECLADO REALISTA ===
+        # Área negra del teclado
+        keyboard_rect = pygame.Rect(
+            keyboard_area_rect.x + 20,
+            keyboard_area_rect.y + 15,
+            keyboard_area_rect.width - 40,
+            65  # Altura del teclado
+        )
+        
+        pygame.draw.rect(self.screen, (40, 40, 40), keyboard_rect, border_radius=4)
+        
+        # Teclas individuales realistas
+        key_width = 20
+        key_height = 12
+        key_spacing_x = 22
+        key_spacing_y = 14
+        
+        # Layout del teclado como en la imagen
+        keyboard_rows = [
+            (13, 8),   # Fila de números
+            (13, 22),  # Fila QWERTY  
+            (12, 36),  # Fila ASDF
+            (10, 50)   # Fila ZXCV
+        ]
+        
+        for row_idx, (keys_count, y_offset) in enumerate(keyboard_rows):
+            start_x = keyboard_rect.x + (keyboard_rect.width - (keys_count * key_spacing_x)) // 2
+            
+            for col in range(keys_count):
+                key_x = start_x + col * key_spacing_x
+                key_y = keyboard_rect.y + y_offset
+                
+                # Tecla individual
+                key_rect = (key_x, key_y, key_width, key_height)
+                # Tecla gris oscuro
+                pygame.draw.rect(self.screen, (70, 70, 70), key_rect, border_radius=2)
+                # Borde más oscuro
+                pygame.draw.rect(self.screen, (50, 50, 50), key_rect, 1, border_radius=2)
+        
+        # Barra espaciadora
+        spacebar_width = 120
+        spacebar_x = keyboard_rect.centerx - spacebar_width // 2
+        spacebar_y = keyboard_rect.y + 50
+        spacebar_rect = (spacebar_x, spacebar_y, spacebar_width, key_height)
+        pygame.draw.rect(self.screen, (70, 70, 70), spacebar_rect, border_radius=2)
+        pygame.draw.rect(self.screen, (50, 50, 50), spacebar_rect, 1, border_radius=2)
+        
+
+        
+        # === BORDES Y DETALLES FINALES ===
+        # Línea de separación entre pantalla y teclado
+        pygame.draw.line(self.screen, (120, 120, 120), 
+                        (self.laptop_rect.x + 20, keyboard_area_y), 
+                        (self.laptop_rect.right - 20, keyboard_area_y), 2)
+        
+        # Bisagra sutil (línea en la parte superior)
+        pygame.draw.line(self.screen, (100, 100, 100),
+                        (self.laptop_rect.x + 30, self.laptop_rect.y + 5),
+                        (self.laptop_rect.right - 30, self.laptop_rect.y + 5), 1)
+
+    def _draw_successful_boot(self):
+        """Dibuja pantalla de arranque exitoso con animación"""
+        # Fondo azul claro
+        base_color = (100, 150, 255)
+        
+        # Animación de gradiente
+        if self.animation_phase < 30:  # 0.5 segundos a 60 FPS
+            alpha = int((self.animation_phase / 30) * 255)
+            color = (base_color[0], base_color[1], base_color[2])
+        else:
+            color = base_color
+            
+        pygame.draw.rect(self.screen, color, self.screen_rect, border_radius=5)
+        
+        # Logo de Windows simulado
+        logo_size = 40
+        logo_rect = pygame.Rect(
+            self.screen_rect.centerx - logo_size // 2,
+            self.screen_rect.centery - 30,
+            logo_size, logo_size
+        )
+        
+        # Dibujar logo simple (4 cuadrados)
+        quad_size = logo_size // 2 - 2
+        pygame.draw.rect(self.screen, (255, 255, 255), 
+                        (logo_rect.x, logo_rect.y, quad_size, quad_size))
+        pygame.draw.rect(self.screen, (255, 255, 255), 
+                        (logo_rect.x + quad_size + 4, logo_rect.y, quad_size, quad_size))
+        pygame.draw.rect(self.screen, (255, 255, 255), 
+                        (logo_rect.x, logo_rect.y + quad_size + 4, quad_size, quad_size))
+        pygame.draw.rect(self.screen, (255, 255, 255), 
+                        (logo_rect.x + quad_size + 4, logo_rect.y + quad_size + 4, quad_size, quad_size))
+        
+        # Texto de carga
+        font = pygame.font.Font(None, 24)
+        if self.animation_phase < 60:
+            text = "Iniciando..."
+        else:
+            text = "Windows 11"
+        
+        text_surface = font.render(text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=(self.screen_rect.centerx, logo_rect.bottom + 30))
+        self.screen.blit(text_surface, text_rect)
+        
+        # Barra de progreso animada
+        if self.animation_phase >= 30:
+            progress_width = 150
+            progress_height = 4
+            progress_rect = pygame.Rect(
+                self.screen_rect.centerx - progress_width // 2,
+                text_rect.bottom + 20,
+                progress_width, progress_height
+            )
+            pygame.draw.rect(self.screen, (255, 255, 255), progress_rect, border_radius=2)
+            
+            # Progreso
+            fill_width = int((min(self.animation_phase - 30, 60) / 60) * progress_width)
+            if fill_width > 0:
+                fill_rect = pygame.Rect(progress_rect.x, progress_rect.y, fill_width, progress_height)
+                pygame.draw.rect(self.screen, (0, 200, 100), fill_rect, border_radius=2)
+
+    def _draw_blue_screen(self):
+        """Dibuja la pantalla azul de la muerte"""
+        # Fondo azul de la muerte
+        pygame.draw.rect(self.screen, (0, 120, 215), self.screen_rect, border_radius=5)
+        
+        # Emoji triste
+        font_large = pygame.font.Font(None, 72)
+        sad_face = font_large.render(":(", True, (255, 255, 255))
+        sad_rect = sad_face.get_rect(center=(self.screen_rect.centerx, self.screen_rect.y + 60))
+        self.screen.blit(sad_face, sad_rect)
+        
+        # Texto de error
+        font_medium = pygame.font.Font(None, 28)
+        error_lines = [
+            "Tu PC encontró un problema y necesita",
+            "reiniciarse. Estamos recopilando información",
+            "de errores y luego reiniciaremos por ti."
+        ]
+        
+        y_start = sad_rect.bottom + 20
+        for i, line in enumerate(error_lines):
+            text_surface = font_medium.render(line, True, (255, 255, 255))
+            text_rect = text_surface.get_rect(center=(self.screen_rect.centerx, y_start + i * 25))
+            self.screen.blit(text_surface, text_rect)
+        
+        # Código de error
+        font_small = pygame.font.Font(None, 20)
+        error_code = "CRITICAL_PROCESS_DIED"
+        code_surface = font_small.render(error_code, True, (200, 200, 200))
+        code_rect = code_surface.get_rect(center=(self.screen_rect.centerx, self.screen_rect.bottom - 30))
+        self.screen.blit(code_surface, code_rect)
+
+    def _draw_power_button(self):
+        """Dibuja el botón de encendido"""
+        # Color del botón
+        if self.laptop_powered_on:
+            button_color = (100, 100, 100)  # Gris cuando está encendido
+        else:
+            button_color = (34, 197, 94)    # Verde cuando puede presionarse
+            
+        pygame.draw.rect(self.screen, button_color, self.power_button_rect, border_radius=8)
+        pygame.draw.rect(self.screen, (50, 50, 50), self.power_button_rect, 2, border_radius=8)
+        
+        # Icono de power
+        font = pygame.font.Font(None, 24)
+        power_text = font.render("Encender", True, (255, 255, 255))
+        power_rect = power_text.get_rect(center=self.power_button_rect.center)
+        self.screen.blit(power_text, power_rect)
+
+    def _draw_finish_button(self):
+        """Dibuja el botón finalizar"""
+        pygame.draw.rect(self.screen, (220, 53, 69), self.finish_button_rect, border_radius=8)
+        font = pygame.font.Font(None, 24)
+        finish_text = font.render("Finalizar", True, (255, 255, 255))
+        finish_rect = finish_text.get_rect(center=self.finish_button_rect.center)
+        self.screen.blit(finish_text, finish_rect)
+
+    def _draw_message(self):
+        """Dibuja mensaje de resultado en el lado derecho"""
+        # Fondo del mensaje (MOVIDO AL LADO DERECHO)
+        message_width = 320  # Era 500, más angosto
+        message_height = 140  # Era 120, un poco más alto
+        message_rect = pygame.Rect(
+            self.laptop_rect.right + 30,  # Al lado derecho de la laptop
+            self.laptop_rect.centery - message_height // 2,  # Centrado verticalmente con la laptop
+            message_width, message_height
+        )
+        
+        if self.all_components_present:
+            bg_color = (200, 255, 200)  # Verde claro para éxito
+            border_color = (34, 197, 94)
+        else:
+            bg_color = (255, 200, 200)  # Rojo claro para error
+            border_color = (220, 53, 69)
+            
+        pygame.draw.rect(self.screen, bg_color, message_rect, border_radius=10)
+        pygame.draw.rect(self.screen, border_color, message_rect, 3, border_radius=10)
+        
+        # Texto del mensaje (ajustado para el ancho más pequeño)
+        font = pygame.font.Font(None, 22)  # Un poco más pequeño
+        if self.all_components_present:
+            lines = [
+                "¡Excelente trabajo!",
+                "",
+                "Todos los componentes",
+                "fueron ensamblados",
+                "correctamente.",
+                "",
+                "La laptop enciende",
+                "perfectamente."
+            ]
+        else:
+            lines = [
+                "¡Ups! La laptop no",
+                "puede encender.",
+                "",
+                "Faltan componentes",
+                "internos por ensamblar.",
+                "",
+                "Haz clic en Finalizar",
+                "e intenta nuevamente."
+            ]
+        
+        y_start = message_rect.y + 15
+        for i, line in enumerate(lines):
+            if line:  # Solo dibujar líneas no vacías
+                text_surface = font.render(line, True, (50, 50, 50))
+                text_rect = text_surface.get_rect(center=(message_rect.centerx, y_start + i * 16))
+                self.screen.blit(text_surface, text_rect)
+
+    def update(self, dt):
+        """Actualiza animaciones"""
+        if self.laptop_powered_on:
+            self.animation_timer += dt
+            self.animation_phase = min(int(self.animation_timer * 60), 120)  # 2 segundos máximo
+        
+        if self.show_message:
+            self.message_timer += dt
+
+    def run(self):
+        """Ejecuta la lógica principal de la pantalla"""
+        clock = pygame.time.Clock()
+        running = True
+        action_result = {"action": "quit"}
+
+        while running:
+            dt = clock.tick(60) / 1000.0  # Delta time en segundos
+            mouse_pos = pygame.mouse.get_pos()
+            
+            # Actualizar animaciones
+            self.update(dt)
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    action_result = {"action": "quit"}
+                    running = False
+
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if self.power_button_rect.collidepoint(mouse_pos) and not self.laptop_powered_on:
+                        # Encender laptop
+                        self.laptop_powered_on = True
+                        self.animation_timer = 0
+                        self.animation_phase = 0
+                        # Mostrar mensaje después de 3 segundos
+                        pygame.time.set_timer(pygame.USEREVENT + 1, 3000)
+                        
+                    elif self.finish_button_rect.collidepoint(mouse_pos):
+                        action_result = {"action": "back_to_selection"}
+                        running = False
+
+                if event.type == pygame.USEREVENT + 1:
+                    # Mostrar mensaje después de la animación
+                    self.show_message = True
+                    self.message_timer = 0
+                    pygame.time.set_timer(pygame.USEREVENT + 1, 0)  # Cancelar timer
+
+            self.draw()
+            pygame.display.flip()
+
+        return action_result
