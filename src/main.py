@@ -34,7 +34,7 @@ def main():
         elif current_screen == "selection":
             selection_screen = SelectionScreen(screen)
             selected_computer_type = selection_screen.run()
-            if not selected_computer_type:
+            if not selected_computer_type or selected_computer_type == "exit":
                 current_screen = "quit"
             else:
                 print(f"Tipo seleccionado: {selected_computer_type}")

@@ -65,11 +65,20 @@ class SelectionScreen:
             button_width, button_height
         )
         
+        # Botón de finalizar simulación
+        finish_button_width, finish_button_height = 250, 50
+        self.finish_button_rect = pygame.Rect(
+            (self.width - finish_button_width) // 2,
+            self.height - 100,
+            finish_button_width, finish_button_height
+        )
+        
         # Estados de hover
         self.laptop_hovered = False
         self.desktop_hovered = False
         self.laptop_btn_hovered = False
         self.desktop_btn_hovered = False
+        self.finish_btn_hovered = False
     
     def draw_gradient_rect(self, rect, color1, color2):
         """Dibuja un rectángulo con gradiente vertical"""
@@ -138,6 +147,15 @@ class SelectionScreen:
         self.draw_card(self.desktop_rect, self.desktop_image, "Desktop", 
                       self.desktop_button_rect, self.desktop_hovered, self.desktop_btn_hovered)
         
+        # Botón de finalizar simulación
+        btn_color = (220, 38, 38) if self.finish_btn_hovered else (185, 28, 28)  # Rojo
+        pygame.draw.rect(self.screen, btn_color, self.finish_button_rect, border_radius=12)
+        
+        # Texto del botón finalizar
+        finish_text = self.button_font.render("Finalizar Simulación", True, self.text_color)
+        finish_text_rect = finish_text.get_rect(center=self.finish_button_rect.center)
+        self.screen.blit(finish_text, finish_text_rect)
+        
         pygame.display.flip()
 
     def run(self):
@@ -152,6 +170,7 @@ class SelectionScreen:
             self.desktop_hovered = self.desktop_rect.collidepoint(mouse_pos)
             self.laptop_btn_hovered = self.laptop_button_rect.collidepoint(mouse_pos)
             self.desktop_btn_hovered = self.desktop_button_rect.collidepoint(mouse_pos)
+            self.finish_btn_hovered = self.finish_button_rect.collidepoint(mouse_pos)
             
             self.draw()
             
@@ -165,6 +184,9 @@ class SelectionScreen:
                         running = False
                     elif self.desktop_button_rect.collidepoint(event.pos):
                         selected = "desktop"
+                        running = False
+                    elif self.finish_button_rect.collidepoint(event.pos):
+                        selected = "exit"
                         running = False
                         
         return selected
