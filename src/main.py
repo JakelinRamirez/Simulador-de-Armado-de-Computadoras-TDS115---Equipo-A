@@ -8,6 +8,7 @@ from screens.selection_screen import SelectionScreen
 from screens.start_screen import StartScreen
 from screens.simulation_screen import EstanteScreen
 from screens.worktable_screen import WorktableScreen, WorktableDesktopScreen
+from screens.external_components_screen import WorktableExternalComponentsScreen
 
 def main():
     """Función principal que maneja el flujo de la aplicación"""
@@ -70,6 +71,8 @@ def main():
             # Procesar la acción devuelta por cualquiera de las dos pantallas de mesa de trabajo
             if worktable_action["action"] == "quit":
                 current_screen = "quit"
+            elif worktable_action["action"] == "external_component":
+                current_screen = "external"
             elif worktable_action["action"] == "back_to_selection":
                 # Regresar a la pantalla de componentes con las selecciones preservadas
                 final_selected_components = worktable_action.get("selected_components", [])
@@ -79,6 +82,12 @@ def main():
                 current_screen = "selection"
             else:
                 current_screen = "selection"
+
+        elif current_screen == "external":
+            worktableExternal = WorktableExternalComponentsScreen(screen, selected_computer_type, final_selected_components)
+            worktable_external= worktableExternal.run()
+            if worktable_external["action"] == "quit":
+                current_screen = "quit"
     
     # Limpiar recursos de Pygame
     pygame.quit()

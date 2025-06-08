@@ -678,7 +678,7 @@ class WorktableDesktopScreen:
                         if all_placed:
                             print("Todos los componentes colocados. Procediendo...")
                             running = False
-                            action_to_return = {"action": "assembly_complete"}
+                            action_to_return = {"action": "external_component", "selected_components": self.initial_selected_components}
                             break
                         else:
                             self.show_alert = True
