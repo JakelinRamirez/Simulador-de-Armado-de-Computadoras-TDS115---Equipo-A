@@ -7,7 +7,7 @@ import pygame
 from screens.selection_screen import SelectionScreen
 from screens.start_screen import StartScreen
 from screens.simulation_screen import EstanteScreen
-from screens.worktable_screen import WorktableScreen, WorktableDesktopScreen, LaptopExternalConnectionScreen
+from screens.worktable_screen import WorktableScreen, WorktableDesktopScreen, LaptopExternalConnectionScreen, DesktopExternalConnectionScreen
 
 def main():
     """Función principal que maneja el flujo de la aplicación"""
@@ -109,25 +109,31 @@ def main():
                 print(f"Computer type: {selected_computer_type}")
                 print(f"External components list: {external_components}")
                 print(f"External components count: {len(external_components)}")
-                print(f"Is laptop? {selected_computer_type == 'laptop'}")
                 print(f"Has external components? {bool(external_components)}")
-                print(f"Condition result: {selected_computer_type == 'laptop' and external_components}")
                 
-                if selected_computer_type == "laptop" and external_components:
-                    # Para laptop con componentes externos, ir a pantalla de conexión externa
+                if external_components:
+                    # Si hay componentes externos, ir a pantalla de conexión externa (laptop o desktop)
                     print("DEBUG: Going to external_connection screen")
                     current_screen = "external_connection"
                 else:
-                    # Para desktop o laptop sin externos, terminar
-                    print("DEBUG: Going back to selection (no external components or not laptop)")
+                    # Sin componentes externos, terminar
+                    print("DEBUG: Going back to selection (no external components)")
                     current_screen = "selection"
             else:
                 current_screen = "selection"
 
         elif current_screen == "external_connection":
-            # Pantalla de conexión de componentes externos para laptop
+            # Pantalla de conexión de componentes externos (laptop o desktop)
             print("Iniciando pantalla de conexión externa...")
-            external_screen = LaptopExternalConnectionScreen(screen, selected_computer_type, external_components)
+            if selected_computer_type == "laptop":
+                external_screen = LaptopExternalConnectionScreen(screen, selected_computer_type, external_components)
+            elif selected_computer_type == "desktop":
+                external_screen = DesktopExternalConnectionScreen(screen, selected_computer_type, external_components)
+            else:
+                # Fallback en caso de tipo no reconocido
+                current_screen = "selection"
+                continue
+                
             external_action = external_screen.run()
             
             if external_action["action"] == "quit":

@@ -756,7 +756,7 @@ class WorktableDesktopScreen:
             slot.draw(self.screen, is_hovering_correct)
 
         # Sidebar
-        sidebar_display_rect = pygame.Rect(self.sidebar_x_start, 0, self.sidebar_width, self.height)
+        sidebar_display_rect = pygame.Rect(self.sidebar_x_start, 60, self.sidebar_width, self.height - 120)
         pygame.draw.rect(self.screen, SIDEBAR_BG_COLOR, sidebar_display_rect)
         pygame.draw.line(self.screen, MINI_CARD_BORDER, (self.sidebar_x_start, 0), (self.sidebar_x_start, self.height), 2)
         sidebar_title_surface = SIDEBAR_FONT.render("Componentes", True, SIDEBAR_TITLE_COLOR)
@@ -879,7 +879,7 @@ class LaptopExternalConnectionScreen:
         img_in_card_w, img_in_card_h = 60, 50
 
         # Hub USB en el centro-izquierda de la laptop para conectar periféricos
-        hub_center_x = self.laptop_illustration_rect.centerx - 80
+        hub_center_x = self.laptop_illustration_rect.centerx - 60  # Movido hacia la derecha (era -80)
         hub_center_y = self.laptop_illustration_rect.centery
         
         # Slots para componentes externos distribuidos alrededor del hub
@@ -937,14 +937,14 @@ class LaptopExternalConnectionScreen:
 
         # Componentes externos disponibles
         external_component_defs = [
-            {"id": "MOUSE_EXT", "name": "Mouse Razen", "img": "assets/images/componentesExternos/mouse.png", "slot": "SLOT_MOUSE"},
-            {"id": "KEYBOARD_EXT", "name": "Teclado Mecanico", "img": "assets/images/componentesExternos/Teclado mecánico RGB.png", "slot": "SLOT_KEYBOARD"},
-            {"id": "HEADPHONES_EXT", "name": "Bocinas Estereo", "img": "assets/images/componentesExternos/bocinas.png", "slot": "SLOT_HEADPHONES"},
-            {"id": "WEBCAM_EXT", "name": "Webcam HD 1080p", "img": "assets/images/componentesExternos/camara.png", "slot": "SLOT_WEBCAM"},
-            {"id": "MONITOR_EXT", "name": "Monitor LED 24\"", "img": "assets/images/componentesExternos/monitorNew.png", "slot": "SLOT_MONITOR"},
-            {"id": "PRINTER_EXT", "name": "Microfono USB", "img": "assets/images/componentesExternos/microfono.png", "slot": "SLOT_PRINTER"},
-            {"id": "UPS_EXT", "name": "UPS", "img": "assets/images/componentesExternos/ups.png", "slot": "SLOT_UPS"},
-            {"id": "HUB_EXT", "name": "HUB USB", "img": "assets/images/componentesExternos/HUB.png", "slot": "SLOT_HUB"},
+            {"id": "MOUSE_EXT", "name": "Mouse Razen", "img": "../src/assets/images/componentesExternos/mouse.png", "slot": "SLOT_MOUSE"},
+            {"id": "KEYBOARD_EXT", "name": "Teclado Mecanico", "img": "../src/assets/images/componentesExternos/Teclado mecánico RGB.png", "slot": "SLOT_KEYBOARD"},
+            {"id": "HEADPHONES_EXT", "name": "Bocinas Estereo", "img": "../src/assets/images/componentesExternos/bocinas.png", "slot": "SLOT_HEADPHONES"},
+            {"id": "WEBCAM_EXT", "name": "Webcam HD 1080p", "img": "../src/assets/images/componentesExternos/camara.png", "slot": "SLOT_WEBCAM"},
+            {"id": "MONITOR_EXT", "name": "Monitor LED 24\"", "img": "../src/assets/images/componentesExternos/monitorNew.png", "slot": "SLOT_MONITOR"},
+            {"id": "PRINTER_EXT", "name": "Microfono USB", "img": "../src/assets/images/componentesExternos/microfono.png", "slot": "SLOT_PRINTER"},
+            {"id": "UPS_EXT", "name": "UPS", "img": "../src/assets/images/componentesExternos/ups.png", "slot": "SLOT_UPS"},
+            {"id": "HUB_EXT", "name": "HUB USB", "img": "../src/assets/images/componentesExternos/HUB.png", "slot": "SLOT_HUB"},
         ]
 
         # Crear mini cards para componentes seleccionados distribuidas en dos columnas
@@ -1109,6 +1109,466 @@ class LaptopExternalConnectionScreen:
             self.screen, (100, 110, 120), 
             self.hub_rect.center, 
             laptop_connection_point, 
+            3
+        )
+
+        # Cables del hub a cada slot
+        for slot in self.slots:
+            slot_center = slot.rect.center
+            # Cable usando líneas simples
+            pygame.draw.line(
+                self.screen, (150, 160, 170), 
+                self.hub_rect.center, 
+                slot_center, 
+                2
+            )
+
+    def _draw_external_slot(self, slot, is_hovering_correct=False):
+        """Dibuja un slot para componente externo"""
+        # Fondo del slot
+        if slot.is_occupied():
+            bg_color = (100, 200, 100)  # Verde si tiene componente
+        elif is_hovering_correct:
+            bg_color = (120, 255, 120)  # Verde claro si se está haciendo hover con componente correcto
+        else:
+            bg_color = (220, 230, 240)  # Gris claro si está vacío
+        
+        pygame.draw.rect(self.screen, bg_color, slot.rect, border_radius=5)
+        
+        # Borde más grueso y verde si hay hover correcto
+        border_color = (50, 200, 50) if is_hovering_correct else (150, 160, 170)
+        border_width = 3 if is_hovering_correct else 2
+        pygame.draw.rect(self.screen, border_color, slot.rect, border_width, border_radius=5)
+        
+        # Texto del slot (si está vacío)
+        if not slot.is_occupied():
+            slot_font = pygame.font.Font(None, 16)
+            text_color = (40, 120, 40) if is_hovering_correct else (80, 90, 100)
+            slot_text = slot_font.render(slot.display_name_on_slot, True, text_color)
+            slot_text_rect = slot_text.get_rect(center=slot.rect.center)
+            self.screen.blit(slot_text, slot_text_rect)
+
+    def _draw_sidebar(self):
+        """Dibuja el sidebar de componentes"""
+        sidebar_rect = pygame.Rect(self.sidebar_x_start, 60, self.sidebar_width, self.height - 120)
+        pygame.draw.rect(self.screen, (255, 255, 255), sidebar_rect, border_radius=8)
+        pygame.draw.rect(self.screen, (200, 210, 220), sidebar_rect, 2, border_radius=8)
+        
+        # Título del sidebar
+        sidebar_font = pygame.font.Font(None, 20)
+        sidebar_title = sidebar_font.render("Componentes Externos", True, (50, 60, 70))
+        title_rect = sidebar_title.get_rect(centerx=sidebar_rect.centerx, y=sidebar_rect.top + 10)
+        self.screen.blit(sidebar_title, title_rect)
+
+    def _draw_navigation_buttons(self):
+        """Dibuja los botones de navegación"""
+        # Botón Atrás
+        pygame.draw.rect(self.screen, (220, 53, 69), self.back_button_rect, border_radius=5)
+        back_font = pygame.font.Font(None, 20)
+        back_text = back_font.render("← Atrás", True, (255, 255, 255))
+        back_text_rect = back_text.get_rect(center=self.back_button_rect.center)
+        self.screen.blit(back_text, back_text_rect)
+
+        # Botón Continuar
+        pygame.draw.rect(self.screen, (34, 197, 94), self.continue_button_rect, border_radius=5)
+        continue_font = pygame.font.Font(None, 20)
+        continue_text = continue_font.render("Finalizar", True, (255, 255, 255))
+        continue_text_rect = continue_text.get_rect(center=self.continue_button_rect.center)
+        self.screen.blit(continue_text, continue_text_rect)
+
+    def _draw_alert(self):
+        """Dibuja la alerta de validación"""
+        # Centrar alerta
+        self.alert_box_rect.center = (self.width // 2, self.height // 2)
+        
+        # Fondo de alerta
+        pygame.draw.rect(self.screen, (254, 202, 202), self.alert_box_rect, border_radius=8)
+        pygame.draw.rect(self.screen, (239, 68, 68), self.alert_box_rect, 3, border_radius=8)
+        
+        # Texto de alerta
+        alert_font = pygame.font.Font(None, 20)
+        lines = self.alert_message.split('\n')
+        y_offset = self.alert_box_rect.centery - (len(lines) * 12)
+        
+        for line in lines:
+            text_surface = alert_font.render(line, True, (153, 27, 27))
+            text_rect = text_surface.get_rect(centerx=self.alert_box_rect.centerx, y=y_offset)
+            self.screen.blit(text_surface, text_rect)
+            y_offset += 24
+
+    def run(self):
+        """Ejecuta la lógica principal de la pantalla"""
+        clock = pygame.time.Clock()
+        running = True
+        action_result = {"action": "quit"}
+
+        while running:
+            mouse_pos = pygame.mouse.get_pos()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    action_result = {"action": "quit"}
+                    running = False
+
+                if self.show_alert:
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        self.show_alert = False
+                    continue
+
+                # Manejo de eventos para los botones
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if self.back_button_rect.collidepoint(mouse_pos):
+                        action_result = {"action": "back_to_worktable", "selected_components": self.selected_external_components}
+                        running = False
+                        break
+                    elif self.continue_button_rect.collidepoint(mouse_pos):
+                        # Verificar que todos los componentes estén conectados
+                        if self._all_components_connected():
+                            action_result = {"action": "assembly_complete"}
+                            running = False
+                        else:
+                            self.show_alert = True
+                        break
+
+                # Lógica de drag & drop usando el sistema existente
+                if not self.show_alert:
+                    if self.currently_dragged_card:
+                        if self.currently_dragged_card.handle_event(event, self.slots):
+                            if not self.currently_dragged_card.is_dragging:
+                                self.currently_dragged_card = None
+
+                    elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                        for card in self.mini_cards:
+                            if card.rect.collidepoint(mouse_pos):
+                                if card.handle_event(event, self.slots):
+                                    self.currently_dragged_card = card
+                                    break
+
+            if not running:
+                break
+
+            self.draw()
+            pygame.display.flip()
+            clock.tick(60)
+
+        return action_result
+
+    def _all_components_connected(self):
+        """Verifica si todos los componentes han sido conectados"""
+        return all(card.is_placed for card in self.mini_cards) if self.mini_cards else True
+
+
+class DesktopExternalConnectionScreen:
+    """Pantalla para conectar componentes externos a la computadora de escritorio."""
+    def __init__(self, screen, computer_type, selected_external_components):
+        self.screen = screen
+        self.width = screen.get_width()
+        self.height = screen.get_height()
+        self.computer_type = computer_type
+        self.selected_external_components = selected_external_components
+
+        # Área para la ilustración de desktop (centro, pero un poco a la izquierda)
+        self.desktop_illustration_width = self.width * 0.50
+        self.desktop_illustration_height = self.height * 0.70
+        self.desktop_illustration_rect = pygame.Rect(
+            50, 
+            (self.height - self.desktop_illustration_height) // 2 + 10, 
+            self.desktop_illustration_width,
+            self.desktop_illustration_height
+        )
+
+        # Área del sidebar para componentes externos (derecha)
+        self.sidebar_width = self.width * 0.35
+        self.sidebar_x_start = self.width - self.sidebar_width - 10
+
+        self.slots = []
+        self.mini_cards = []
+        self.currently_dragged_card = None
+
+        self._setup_desktop_external_connections()
+
+        # Botones y Alerta
+        self.show_alert = False
+        self.alert_message = "Por favor conecte todos los componentes externos para continuar"
+        
+        button_width, button_height = 120, 35
+        self.back_button_rect = pygame.Rect(20, 20, button_width, button_height)
+        self.continue_button_rect = pygame.Rect(
+            self.width - button_width - 20, 
+            self.height - button_height - 20, 
+            button_width, 
+            button_height
+        )
+        
+        self.alert_box_rect = pygame.Rect(0, 0, 400, 100)
+
+    def _setup_desktop_external_connections(self):
+        # Tarjetas para componentes externos
+        mini_card_w, mini_card_h = 140, 80
+        img_in_card_w, img_in_card_h = 60, 50
+
+        # Hub USB en el lado derecho de la torre para conectar periféricos
+        hub_center_x = self.desktop_illustration_rect.centerx - 50  # Cambiado de +40 a -50 para mover más a la izquierda
+        hub_center_y = self.desktop_illustration_rect.centery
+        
+        # Slots para componentes externos distribuidos alrededor del hub
+        slot_data = [
+            # Primera fila (arriba)
+            # Mouse - Conectado al hub, arriba izquierda
+            ("SLOT_MOUSE", "Mouse", 
+             (hub_center_x - 220, hub_center_y - 140, mini_card_w, mini_card_h), 
+             "MOUSE_EXT"),
+            
+            # Teclado - Conectado al hub, arriba centro-izquierda  
+            ("SLOT_KEYBOARD", "Teclado", 
+             (hub_center_x - 70, hub_center_y - 140, mini_card_w, mini_card_h), 
+             "KEYBOARD_EXT"),
+            
+            # Monitor - Conectado al hub, arriba centro-derecha
+            ("SLOT_MONITOR", "Monitor", 
+             (hub_center_x + 80, hub_center_y - 140, mini_card_w, mini_card_h), 
+             "MONITOR_EXT"),
+            
+            # Webcam - Conectado al hub, arriba derecha
+            ("SLOT_WEBCAM", "Webcam", 
+             (hub_center_x + 230, hub_center_y - 140, mini_card_w, mini_card_h), 
+             "WEBCAM_EXT"),
+            
+            # Segunda fila (abajo)
+            # Bocinas - Conectado al hub, abajo izquierda
+            ("SLOT_HEADPHONES", "Bocinas", 
+             (hub_center_x - 220, hub_center_y + 100, mini_card_w, mini_card_h), 
+             "HEADPHONES_EXT"),
+            
+            # Micrófono - Conectado al hub, abajo centro-izquierda
+            ("SLOT_PRINTER", "Micrófono", 
+             (hub_center_x - 70, hub_center_y + 100, mini_card_w, mini_card_h), 
+             "PRINTER_EXT"),
+            
+            # UPS - Conectado al hub, abajo centro-derecha
+            ("SLOT_UPS", "UPS", 
+             (hub_center_x + 80, hub_center_y + 100, mini_card_w, mini_card_h), 
+             "UPS_EXT"),
+            
+            # HUB USB - Conectado al hub, abajo derecha
+            ("SLOT_HUB", "HUB USB", 
+             (hub_center_x + 230, hub_center_y + 100, mini_card_w, mini_card_h), 
+             "HUB_EXT"),
+        ]
+
+        self.slots = []
+        for id_name, display_name, coords, accepted_id in slot_data:
+            slot_rect = pygame.Rect(coords[0], coords[1], coords[2], coords[3])
+            self.slots.append(DropSlot(id_name, display_name, slot_rect, accepted_id))
+
+        # Coordenadas del hub para dibujar cables
+        self.hub_rect = pygame.Rect(hub_center_x - 30, hub_center_y - 15, 60, 30)
+
+        # Componentes externos disponibles (mismos que laptop)
+        external_component_defs = [
+            {"id": "MOUSE_EXT", "name": "Mouse Razen", "img": "../src/assets/images/componentesExternos/mouse.png", "slot": "SLOT_MOUSE"},
+            {"id": "KEYBOARD_EXT", "name": "Teclado Mecanico", "img": "../src/assets/images/componentesExternos/Teclado mecánico RGB.png", "slot": "SLOT_KEYBOARD"},
+            {"id": "HEADPHONES_EXT", "name": "Bocinas Estereo", "img": "../src/assets/images/componentesExternos/bocinas.png", "slot": "SLOT_HEADPHONES"},
+            {"id": "WEBCAM_EXT", "name": "Webcam HD 1080p", "img": "../src/assets/images/componentesExternos/camara.png", "slot": "SLOT_WEBCAM"},
+            {"id": "MONITOR_EXT", "name": "Monitor LED 24\"", "img": "../src/assets/images/componentesExternos/monitorNew.png", "slot": "SLOT_MONITOR"},
+            {"id": "PRINTER_EXT", "name": "Microfono USB", "img": "../src/assets/images/componentesExternos/microfono.png", "slot": "SLOT_PRINTER"},
+            {"id": "UPS_EXT", "name": "UPS", "img": "../src/assets/images/componentesExternos/ups.png", "slot": "SLOT_UPS"},
+            {"id": "HUB_EXT", "name": "HUB USB", "img": "../src/assets/images/componentesExternos/HUB.png", "slot": "SLOT_HUB"},
+        ]
+
+        # Crear mini cards para componentes seleccionados distribuidas en dos columnas
+        sidebar_item_y = 80
+        sidebar_item_spacing = 8
+        cards_per_column = 4  # 4 componentes por columna para un total de 8
+        column_width = mini_card_w + 10
+        
+        # Centrar las columnas en el sidebar
+        total_columns_width = (2 * mini_card_w) + 10
+        sidebar_center_x = self.sidebar_x_start + (self.sidebar_width // 2)
+        first_column_x = sidebar_center_x - (total_columns_width // 2)
+        second_column_x = first_column_x + column_width
+        
+        self.mini_cards = []
+        card_index = 0
+        
+        for comp_def in external_component_defs:
+            if comp_def["name"] in self.selected_external_components:
+                # Determinar en qué columna va este componente
+                if card_index < cards_per_column:
+                    # Primera columna
+                    pos_x = first_column_x
+                    pos_y = sidebar_item_y + (card_index * (mini_card_h + sidebar_item_spacing))
+                else:
+                    # Segunda columna
+                    pos_x = second_column_x
+                    pos_y = sidebar_item_y + ((card_index - cards_per_column) * (mini_card_h + sidebar_item_spacing))
+                
+                mini_card = MiniCardComponent(
+                    comp_def["id"], comp_def["name"], comp_def["img"],
+                    (pos_x, pos_y), comp_def["slot"], 
+                    card_size=(mini_card_w, mini_card_h), 
+                    image_render_size=(img_in_card_w, img_in_card_h)
+                )
+                self.mini_cards.append(mini_card)
+                card_index += 1
+
+    def draw(self):
+        """Dibuja la pantalla de conexión de componentes externos para desktop"""
+        # Obtener posición del mouse
+        mouse_pos = pygame.mouse.get_pos()
+        
+        # Fondo
+        self.screen.fill((240, 245, 250))
+
+        # Título
+        title_font = pygame.font.Font(None, 36)
+        title_text = title_font.render("Conexión de Componentes Externos - Desktop", True, (30, 41, 59))
+        title_rect = title_text.get_rect(center=(self.width // 2, 30))
+        self.screen.blit(title_text, title_rect)
+
+        # Dibujar ilustración de computadora de torre
+        self._draw_desktop_illustration()
+        
+        # Dibujar hub y cables
+        self._draw_hub_and_cables()
+
+        # Dibujar slots para componentes externos con detección de hover
+        for slot in self.slots:
+            is_hovering_correct = False
+            if self.currently_dragged_card and \
+               self.currently_dragged_card.target_slot_id == slot.id_name and \
+               slot.rect.collidepoint(mouse_pos):
+                is_hovering_correct = True
+            self._draw_external_slot(slot, is_hovering_correct)
+
+        # Dibujar sidebar con componentes
+        self._draw_sidebar()
+
+        # Dibujar mini cards
+        for mini_card in self.mini_cards:
+            mini_card.draw(self.screen)
+
+        # Dibujar componente siendo arrastrado
+        if self.currently_dragged_card:
+            self.currently_dragged_card.draw(self.screen)
+
+        # Dibujar botones
+        self._draw_navigation_buttons()
+
+        # Dibujar alerta si es necesario
+        if self.show_alert:
+            self._draw_alert()
+
+    def _draw_desktop_illustration(self):
+        """Dibuja la ilustración de la computadora de torre (desktop)"""
+        desktop_rect = self.desktop_illustration_rect
+        
+        # Cuerpo principal de la torre (rectángulo vertical)
+        tower_width = desktop_rect.width * 0.4
+        tower_height = desktop_rect.height * 0.8
+        tower_rect = pygame.Rect(
+            desktop_rect.left + (desktop_rect.width - tower_width) // 2,
+            desktop_rect.top + (desktop_rect.height - tower_height) // 2,
+            tower_width,
+            tower_height
+        )
+        
+        # Dibujar torre principal
+        pygame.draw.rect(self.screen, (70, 80, 90), tower_rect, border_radius=8)
+        pygame.draw.rect(self.screen, (50, 60, 70), tower_rect, 3, border_radius=8)
+
+        # Panel frontal (ligeramente más oscuro)
+        front_panel = pygame.Rect(
+            tower_rect.left + 10,
+            tower_rect.top + 20,
+            tower_rect.width - 20,
+            tower_rect.height - 40
+        )
+        pygame.draw.rect(self.screen, (60, 70, 80), front_panel, border_radius=5)
+        pygame.draw.rect(self.screen, (40, 50, 60), front_panel, 2, border_radius=5)
+
+        # Botón de encendido (círculo en la parte superior)
+        power_button_center = (front_panel.centerx, front_panel.top + 30)
+        pygame.draw.circle(self.screen, (100, 200, 100), power_button_center, 8)
+        pygame.draw.circle(self.screen, (80, 160, 80), power_button_center, 8, 2)
+
+        # Puertos frontales (rectángulos pequeños)
+        ports_y = front_panel.top + 60
+        for i in range(4):
+            port_rect = pygame.Rect(
+                front_panel.left + 15 + (i * 25),
+                ports_y,
+                20, 8
+            )
+            pygame.draw.rect(self.screen, (30, 40, 50), port_rect, border_radius=2)
+
+        # Ranuras de ventilación (líneas horizontales)
+        vent_start_y = front_panel.top + 100
+        for i in range(8):
+            vent_y = vent_start_y + (i * 15)
+            pygame.draw.line(
+                self.screen, (40, 50, 60),
+                (front_panel.left + 20, vent_y),
+                (front_panel.right - 20, vent_y),
+                2
+            )
+
+        # Base de la torre
+        base_rect = pygame.Rect(
+            tower_rect.left - 10,
+            tower_rect.bottom - 15,
+            tower_rect.width + 20,
+            20
+        )
+        pygame.draw.rect(self.screen, (80, 90, 100), base_rect, border_radius=5)
+        pygame.draw.rect(self.screen, (60, 70, 80), base_rect, 2, border_radius=5)
+
+        # Texto "DESKTOP PC"
+        desktop_font = pygame.font.Font(None, 20)
+        desktop_text = desktop_font.render("DESKTOP PC", True, (200, 200, 200))
+        desktop_text_rect = desktop_text.get_rect(center=(tower_rect.centerx, tower_rect.bottom + 40))
+        self.screen.blit(desktop_text, desktop_text_rect)
+
+        # Panel trasero con puertos (lado derecho de la torre)
+        back_panel = pygame.Rect(
+            tower_rect.right,
+            tower_rect.top + 50,
+            30,
+            tower_rect.height - 100
+        )
+        pygame.draw.rect(self.screen, (50, 60, 70), back_panel, border_radius=3)
+        pygame.draw.rect(self.screen, (30, 40, 50), back_panel, 2, border_radius=3)
+
+        # Puertos traseros (pequeños rectángulos)
+        for i in range(6):
+            port_rect = pygame.Rect(
+                back_panel.left + 5,
+                back_panel.top + 20 + (i * 25),
+                20, 12
+            )
+            pygame.draw.rect(self.screen, (20, 30, 40), port_rect, border_radius=2)
+
+    def _draw_hub_and_cables(self):
+        """Dibuja el hub USB y los cables conectados a los slots"""
+        # Dibujar hub USB
+        pygame.draw.rect(self.screen, (70, 80, 90), self.hub_rect, border_radius=4)
+        pygame.draw.rect(self.screen, (50, 60, 70), self.hub_rect, 2, border_radius=4)
+        
+        # Texto del hub
+        hub_font = pygame.font.Font(None, 16)
+        hub_text = hub_font.render("USB HUB", True, (200, 200, 200))
+        hub_text_rect = hub_text.get_rect(center=self.hub_rect.center)
+        self.screen.blit(hub_text, hub_text_rect)
+
+        # Cable principal del hub a la computadora de torre
+        desktop_connection_point = (
+            self.desktop_illustration_rect.centerx + self.desktop_illustration_rect.width * 0.35,
+            self.desktop_illustration_rect.centery
+        )
+        pygame.draw.line(
+            self.screen, (100, 110, 120), 
+            self.hub_rect.center, 
+            desktop_connection_point, 
             3
         )
 
